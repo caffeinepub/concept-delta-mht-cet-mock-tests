@@ -1,2 +1,3 @@
-# concept-delta-mht-cet-mock-tests
-Exported from Caffeine project: Fix mobile three-dot menu opening to avoid transparent/blank background and recurring menu overlay issue
+## 
+
+To run app build and run docker image: `docker build -t app . docker run -it --network host app`

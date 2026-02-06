@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 3,
+  "summary": "New project",
+  "architectural_notes": [],
+  "known_issues": [
+    "Mobile version: tapping the right-side three-dot menu shows a transparent background/blank page; issue reportedly keeps recurring."
+  ],
+  "isFixRequest": true,
+  "existing_features": [
+    {
+      "id": "feature-fix-the-mobile-md-hidden-right-side-menu-three-line-three-dot-menu-button-in-the-header-so-that-opening-it-never-results-in-a-transparent-blank-page-the-underlying-page-must-remain-visible-behind-a-proper-dimmed-overlay-and-the-sheet-panel-must-render-with-an-opaque-background-on-all-mobile-screens",
+      "title": "Fix the mobile (md:hidden) right-side menu (three-line/three-dot menu button in the header) so that opening it never results in a transparent/blank page; the underlying page must remain visible behind a proper dimmed overlay, and the sheet panel must render with an opaque background on all mobile screens.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-defensive-global-css-override-in-frontend-src-index-css-for-the-radix-sheet-overlay-and-content-to-ensure-the-overlay-has-a-non-transparent-background-and-correct-stacking-on-mobile-z-index-without-modifying-any-files-under-frontend-src-components-ui",
+      "title": "Add a defensive, global CSS override (in frontend/src/index.css) for the Radix/Sheet overlay and content to ensure the overlay has a non-transparent background and correct stacking on mobile (z-index), without modifying any files under frontend/src/components/ui.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-prevent-recurrence-of-the-mobile-menu-rendering-issue-by-ensuring-the-mobile-sheet-open-close-state-cannot-leave-the-app-in-an-intermediate-visual-state-e-g-by-ensuring-the-menu-closes-on-navigation-and-by-handling-any-edge-cases-where-view-activation-overlays-might-conflict-with-the-sheet",
+      "title": "Prevent recurrence of the mobile menu rendering issue by ensuring the mobile sheet open/close state cannot leave the app in an intermediate visual state (e.g., by ensuring the menu closes on navigation and by handling any edge cases where view activation overlays might conflict with the sheet).",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [],
+  "projectName": "Fix mobile three-dot menu opening to avoid transparent/blank background and recurring menu overlay issue",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

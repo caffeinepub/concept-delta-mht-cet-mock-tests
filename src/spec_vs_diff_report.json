@@ -1,0 +1,26 @@
+{
+  "kind": "spec_vs_diff_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-06T14:53:56.713Z",
+  "summary": "The diff adds global CSS overrides for Radix Sheet/Dialog overlay/content in frontend/src/index.css and adds mobile menu state handling in Header.tsx (close on navigation and on view activation), plus updates ViewActivationOverlay styling/stacking. Core intent of fixing transparency and preventing intermediate states appears addressed, but the z-index stacking requirement relative to the sticky header/menu button is not clearly satisfied because the overlay is forced to z-index 50 while the header is also z-50.",
+  "missing_requirements": [
+    {
+      "id": "REQ-2",
+      "requirement": "The overlay/content stacking works correctly: header/menu button is not visually lost behind a transparent layer; the overlay sits above the app content and the sheet content sits above the overlay.",
+      "reason": "The global CSS forces the overlay to z-index: 50 and content to z-index: 51, but the Header component uses z-50 as well. With equal z-index between header and overlay, it is not evidenced that the overlay will consistently sit above the header/app content as required.",
+      "evidence": [
+        "frontend/src/index.css",
+        "frontend/src/components/Header.tsx"
+      ]
+    }
+  ],
+  "hallucinated_features": [],
+  "confidence": 0.62,
+  "changed_files": [
+    "frontend-file-summaries.txt",
+    "frontend/src/components/Header.tsx",
+    "frontend/src/components/ViewActivationOverlay.tsx",
+    "frontend/src/index.css",
+    "project_state.json"
+  ]
+}

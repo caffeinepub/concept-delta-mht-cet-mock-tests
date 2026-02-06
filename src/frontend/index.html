@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Practice MHT-CET with real exam-level mock tests. Founded by COEP Technological University student. Get COEP background guidance and CET strategy for Maharashtra engineering entrance exam." />
+    <meta name="keywords" content="MHT-CET, COEPian mentor, COEP background guidance, Maharashtra top engineering college experience, CET strategy by COEP student, MHT-CET mock tests, Physics Chemistry Mathematics" />
+    <meta name="author" content="Concept Delta" />
+    <meta property="og:title" content="Concept Delta - MHT-CET Mock Tests by COEPian Mentor" />
+    <meta property="og:description" content="Practice MHT-CET with real exam-level mock tests. Founded by COEP Technological University student." />
+    <meta property="og:type" content="website" />
+    <title>Concept Delta - MHT-CET Mock Tests by COEPian Mentor</title>
+    
+    <!-- MathJax Configuration and Script -->
+    <script>
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          displayMath: [['$$', '$$'], ['\\[', '\\]']],
+          processEscapes: true,
+          processEnvironments: true
+        },
+        options: {
+          skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+          ignoreHtmlClass: 'tex2jax_ignore',
+          processHtmlClass: 'tex2jax_process'
+        },
+        svg: {
+          fontCache: 'global'
+        },
+        startup: {
+          pageReady: () => {
+            return MathJax.startup.defaultPageReady();
+          }
+        }
+      };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

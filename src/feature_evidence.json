@@ -1,0 +1,71 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-fix-the-mobile-md-hidden-right-side-menu-three-line-three-dot-menu-button-in-the-header-so-that-opening-it-never-results-in-a-transparent-blank-page-the-underlying-page-must-remain-visible-behind-a-proper-dimmed-overlay-and-the-sheet-panel-must-render-with-an-opaque-background-on-all-mobile-screens",
+      "featureTitle": "Fix the mobile (md:hidden) right-side menu (three-line/three-dot menu button in the header) so that opening it never results in a transparent/blank page; the underlying page must remain visible behind a proper dimmed overlay, and the sheet panel must render with an opaque background on all mobile screens.",
+      "files": [
+        "frontend/src/components/Header.tsx",
+        "frontend/src/index.css"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "camera@1.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-defensive-global-css-override-in-frontend-src-index-css-for-the-radix-sheet-overlay-and-content-to-ensure-the-overlay-has-a-non-transparent-background-and-correct-stacking-on-mobile-z-index-without-modifying-any-files-under-frontend-src-components-ui",
+      "featureTitle": "Add a defensive, global CSS override (in frontend/src/index.css) for the Radix/Sheet overlay and content to ensure the overlay has a non-transparent background and correct stacking on mobile (z-index), without modifying any files under frontend/src/components/ui.",
+      "files": [
+        "frontend/src/components/Header.tsx",
+        "frontend/src/index.css"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "camera@1.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-prevent-recurrence-of-the-mobile-menu-rendering-issue-by-ensuring-the-mobile-sheet-open-close-state-cannot-leave-the-app-in-an-intermediate-visual-state-e-g-by-ensuring-the-menu-closes-on-navigation-and-by-handling-any-edge-cases-where-view-activation-overlays-might-conflict-with-the-sheet",
+      "featureTitle": "Prevent recurrence of the mobile menu rendering issue by ensuring the mobile sheet open/close state cannot leave the app in an intermediate visual state (e.g., by ensuring the menu closes on navigation and by handling any edge cases where view activation overlays might conflict with the sheet).",
+      "files": [
+        "frontend/src/components/Header.tsx",
+        "frontend/src/components/ViewActivationOverlay.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "camera@1.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

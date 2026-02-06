@@ -1,0 +1,75 @@
+{
+  "kind": "build_request",
+  "title": "Fix mobile three-dot menu opening to avoid transparent/blank background and recurring menu overlay issue",
+  "priority": "high",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "text": "Fix the mobile (md:hidden) right-side menu (three-line/three-dot menu button in the header) so that opening it never results in a transparent/blank page; the underlying page must remain visible behind a proper dimmed overlay, and the sheet panel must render with an opaque background on all mobile screens.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "same problem wiil again happen and if if click on right side three dot in mobile version show transparant background page"
+        ]
+      },
+      "acceptanceCriteria": [
+        "On a mobile viewport, tapping the header menu button opens a right-side panel and a dimmed overlay; the screen never becomes fully transparent/blank.",
+        "The sheet panel background is opaque (not transparent) and uses the app theme colors (light/dark).",
+        "The overlay covers the full viewport and has a visible dim (e.g., semi-transparent dark layer) behind the panel.",
+        "Closing the menu (swipe/close button/tap outside) returns to the exact prior screen without visual corruption."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Add a defensive, global CSS override (in frontend/src/index.css) for the Radix/Sheet overlay and content to ensure the overlay has a non-transparent background and correct stacking on mobile (z-index), without modifying any files under frontend/src/components/ui.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "show transparant background page"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The CSS fix is implemented only via app-level styles (e.g., index.css) and/or className props in app-owned components (e.g., Header.tsx), and does not require editing any files under frontend/src/components/ui.",
+        "The overlay/content stacking works correctly: header/menu button is not visually lost behind a transparent layer; the overlay sits above the app content and the sheet content sits above the overlay.",
+        "The fix works consistently across at least these views: landing, about, dashboard, admin (when available)."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Prevent recurrence of the mobile menu rendering issue by ensuring the mobile sheet open/close state cannot leave the app in an intermediate visual state (e.g., by ensuring the menu closes on navigation and by handling any edge cases where view activation overlays might conflict with the sheet).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "same problem wiil again happen"
+        ]
+      },
+      "acceptanceCriteria": [
+        "While the mobile menu is open, navigating using any menu item always closes the menu and lands on the selected view without a blank/transparent screen.",
+        "If the ViewActivationOverlay is shown (e.g., navigating to dashboard/admin), the UI remains readable and does not become transparent/blank when the mobile menu was previously opened.",
+        "Repeated open/close cycles of the mobile menu do not degrade the page rendering (no intermittent blank state)."
+      ]
+    }
+  ],
+  "constraints": [
+    "Do not modify any files under frontend/src/components/ui (read-only UI components must be composed/overridden, not edited).",
+    "Keep the backend unchanged; this issue should be resolved purely in the frontend UI/CSS behavior."
+  ],
+  "nonGoals": [
+    "Adding new navigation items or changing the information architecture of the header menu.",
+    "Implementing real-time features or any backend-driven changes.",
+    "Reworking the overall visual theme beyond what is necessary to fix the transparency/overlay bug."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}
