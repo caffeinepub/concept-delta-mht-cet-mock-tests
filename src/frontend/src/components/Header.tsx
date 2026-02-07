@@ -32,12 +32,12 @@ export default function Header({ onNavigate, currentView }: HeaderProps) {
   const isDashboardActivating = isActivatingView('dashboard');
   const isAdminActivating = isActivatingView('admin');
 
-  // Force close mobile menu when view activation starts
+  // Force close mobile menu when view activation starts or when currentView changes
   useEffect(() => {
-    if (activationState.isActivating && mobileMenuOpen) {
+    if (activationState.isActivating || currentView) {
       setMobileMenuOpen(false);
     }
-  }, [activationState.isActivating, mobileMenuOpen]);
+  }, [activationState.isActivating, currentView]);
 
   const handleAuth = async () => {
     if (isAuthenticated) {
@@ -65,11 +65,12 @@ export default function Header({ onNavigate, currentView }: HeaderProps) {
   };
 
   const handleNavigate = (view: AppView) => {
-    // Close menu first, then navigate after a microtask to allow portal cleanup
+    // Close menu immediately
     setMobileMenuOpen(false);
-    requestAnimationFrame(() => {
+    // Navigate after a brief delay to allow Sheet portal cleanup
+    setTimeout(() => {
       onNavigate(view);
-    });
+    }, 50);
   };
 
   // Show navigation controls if authenticated

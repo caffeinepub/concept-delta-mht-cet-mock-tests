@@ -96,16 +96,21 @@
 
 /* Defensive Sheet/Dialog overlay and content fixes */
 @layer base {
-  /* Ensure Radix Sheet overlay is always visible with proper dim */
+  /* Ensure Radix Sheet overlay is always visible with proper dim and full coverage */
   [data-radix-dialog-overlay],
-  [data-radix-sheet-overlay] {
-    background-color: rgba(0, 0, 0, 0.5) !important;
+  [data-radix-sheet-overlay],
+  .mobile-menu-overlay {
+    position: fixed !important;
+    inset: 0 !important;
+    background-color: rgba(0, 0, 0, 0.6) !important;
     z-index: 50 !important;
+    pointer-events: auto !important;
   }
 
   .dark [data-radix-dialog-overlay],
-  .dark [data-radix-sheet-overlay] {
-    background-color: rgba(0, 0, 0, 0.7) !important;
+  .dark [data-radix-sheet-overlay],
+  .dark .mobile-menu-overlay {
+    background-color: rgba(0, 0, 0, 0.8) !important;
   }
 
   /* Ensure Sheet content has opaque background and proper stacking */
@@ -114,12 +119,14 @@
     background-color: hsl(var(--background)) !important;
     color: hsl(var(--foreground)) !important;
     z-index: 51 !important;
+    position: fixed !important;
   }
 
   /* Mobile menu specific fixes */
   .mobile-menu-sheet-content {
     background-color: hsl(var(--background)) !important;
     color: hsl(var(--foreground)) !important;
+    border-left: 1px solid hsl(var(--border)) !important;
   }
 }
 

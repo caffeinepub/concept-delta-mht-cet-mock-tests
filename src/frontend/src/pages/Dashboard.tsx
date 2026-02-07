@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AppView } from '../App';
-import { BookOpen, Clock, CheckCircle2, Circle, PlayCircle, XCircle, Loader2 } from 'lucide-react';
+import { BookOpen, Clock, CheckCircle2, Circle, PlayCircle, XCircle, Loader2, AlertCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TestType, TestStatus } from '../backend';
 
@@ -24,21 +24,24 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ onNavigate, onStartTest }: DashboardProps) {
-  const { data: userProfile, isLoading: profileLoading, refetch: refetchProfile, isFetching: profileFetching } = useGetCallerUserProfile();
+  const { data: userProfile, isLoading: profileLoading, refetch: refetchProfile, isFetching: profileFetching, isFetched: profileFetched } = useGetCallerUserProfile();
   const { data: userRole } = useGetCallerRole();
-  const { data: testConfigsWithStatus, isLoading: testsLoading, isFetching: testsFetching } = useGetTestConfigsWithStatus();
+  const { data: testConfigsWithStatus, isLoading: testsLoading, isFetching: testsFetching, isError: testsError, error: testsErrorObj, refetch: refetchTests, isFetched: testsFetched } = useGetTestConfigsWithStatus();
   const { finishActivation } = useViewActivation();
 
   const isAdmin = userRole === 'admin';
   const isYouTubeVerified = userProfile?.isYouTubeVerified || false;
 
-  // Signal view ready when initial loading completes
+  // Signal view ready when queries settle (success OR error)
   useEffect(() => {
-    if (!profileLoading && !testsLoading) {
-      // Dashboard is ready - clear activation state
+    const profileSettled = profileFetched || (!profileLoading && !profileFetching);
+    const testsSettled = testsFetched || testsError || (!testsLoading && !testsFetching);
+    
+    if (profileSettled && testsSettled) {
+      // Dashboard queries are settled - clear activation state
       finishActivation();
     }
-  }, [profileLoading, testsLoading, finishActivation]);
+  }, [profileLoading, profileFetching, profileFetched, testsLoading, testsFetching, testsFetched, testsError, finishActivation]);
 
   const handleVerified = () => {
     refetchProfile();
@@ -88,6 +91,33 @@ export default function Dashboard({ onNavigate, onStartTest }: DashboardProps) {
             <Skeleton className="h-24 sm:h-32 w-full" />
             <Skeleton className="h-64 sm:h-96 w-full" />
           </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Show error state if tests failed to load
+  if (testsError && !testConfigsWithStatus) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header onNavigate={onNavigate} currentView="dashboard" />
+        <main className="flex-1 container py-6 sm:py-8 px-4 sm:px-6">
+          <Card className="bg-card border-border">
+            <CardContent className="p-8 sm:p-12 flex flex-col items-center justify-center text-center">
+              <AlertCircle className="w-12 h-12 sm:w-16 sm:h-16 text-destructive mb-4" />
+              <h2 className="text-xl sm:text-2xl font-semibold mb-2 text-text-primary">
+                Unable to Load Tests
+              </h2>
+              <p className="text-sm sm:text-base text-text-secondary mb-6 max-w-md">
+                {testsErrorObj instanceof Error ? testsErrorObj.message : 'We encountered an error while loading the test configurations. Please try again.'}
+              </p>
+              <Button onClick={() => refetchTests()} className="gap-2">
+                <Loader2 className="w-4 h-4" />
+                Retry
+              </Button>
+            </CardContent>
+          </Card>
         </main>
         <Footer />
       </div>
@@ -391,11 +421,6 @@ export default function Dashboard({ onNavigate, onStartTest }: DashboardProps) {
                                           {test.totalQuestions.toString()} questions
                                         </span>
                                       </div>
-                                      {test.chapters.length > 0 && (
-                                        <p className="text-xs sm:text-sm text-text-muted line-clamp-2">
-                                          Chapters: {test.chapters.join(', ')}
-                                        </p>
-                                      )}
                                     </div>
                                     <Button
                                       onClick={() => onStartTest(test.id)}
@@ -448,11 +473,6 @@ export default function Dashboard({ onNavigate, onStartTest }: DashboardProps) {
                                           {test.totalQuestions.toString()} questions
                                         </span>
                                       </div>
-                                      {test.chapters.length > 0 && (
-                                        <p className="text-xs sm:text-sm text-text-muted line-clamp-2">
-                                          Chapters: {test.chapters.join(', ')}
-                                        </p>
-                                      )}
                                     </div>
                                     <div className="flex items-center gap-2 text-sm text-text-muted">
                                       <XCircle className="w-4 h-4 text-[#DC2626]" />
@@ -473,18 +493,20 @@ export default function Dashboard({ onNavigate, onStartTest }: DashboardProps) {
           </Card>
         ))}
 
-        {/* Suggestion & Review Section - Lazy Loaded */}
-        <div className="mb-6 sm:mb-8">
-          <Suspense fallback={
-            <Card className="bg-card border-border">
-              <CardContent className="p-6 flex items-center justify-center h-32">
-                <Loader2 className="w-6 h-6 animate-spin text-primary" />
-              </CardContent>
-            </Card>
-          }>
-            <SuggestionSection userName={userProfile?.fullName || 'Anonymous'} />
-          </Suspense>
-        </div>
+        {/* Suggestion Section - Lazy Loaded */}
+        {userProfile && (
+          <div className="mb-6 sm:mb-8">
+            <Suspense fallback={
+              <Card className="bg-card border-border">
+                <CardContent className="p-6 flex items-center justify-center h-32">
+                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                </CardContent>
+              </Card>
+            }>
+              <SuggestionSection userName={userProfile.fullName} />
+            </Suspense>
+          </div>
+        )}
       </main>
 
       <Footer />

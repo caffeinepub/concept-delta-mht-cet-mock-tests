@@ -1,69 +1,65 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Stabilize mobile header Sheet overlay/background rendering and prevent blank/transparent screen recurrence",
+  "title": "Fix dashboard query-settled loading and robust mobile Sheet overlay/lifecycle",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Ensure the mobile header Sheet always opens with a full-viewport dimmed overlay and an opaque right-side panel across light/dark themes (no transparent/blank screen).",
+      "summary": "Ensure Dashboard stops loading on tests query error, clears activation overlay on query settle, and shows an error state with retry.",
       "acceptanceCriteria": [
-        "On a mobile viewport, tapping the header menu button opens a right-side panel and a dimmed overlay; the screen never becomes fully transparent/blank.",
-        "The sheet panel background is opaque (not transparent) and uses the app theme colors (light/dark).",
-        "The overlay covers the full viewport and has a visible dim (e.g., semi-transparent dark layer) behind the panel.",
-        "Closing the menu (swipe/close button/tap outside) returns to the exact prior screen without visual corruption."
+        "If fetching test configs fails (React Query error), the Dashboard does not remain on the loading skeleton indefinitely.",
+        "When the tests query errors, the Dashboard renders an error state (English text) indicating tests could not be loaded and provides a Retry button that re-attempts the fetch.",
+        "View activation completion is not blocked by a failed tests fetch (i.e., any view-activation overlay is cleared once queries are settled, not only on success).",
+        "When the tests fetch later succeeds after retry, the normal dashboard content renders without requiring a hard refresh."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/Header.tsx",
+          "path": "frontend/src/pages/Dashboard.tsx",
           "operation": "modify",
-          "description": "Harden the mobile menu Sheet rendering by explicitly applying opaque theme background + foreground colors and robust z-index to the shadcn-ui SheetContent (Radix Sheet) via className props, and ensure the trigger/header remains visually consistent. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/index.css",
-          "operation": "modify",
-          "description": "Add app-level defensive styling for mobile-only (and safe desktop) to guarantee an always-visible dim overlay and opaque sheet content for the Radix Sheet/Dialog portal content (overlay/content selectors), ensuring the underlying page remains visible behind the overlay. Verify the component's usage instructions before implementing."
+          "description": "Update the tests React Query consumption to use settled state (success OR error) rather than only loading flags: read tests query error/isError/isFetched/refetch, call finishActivation when the profile query and tests query are settled, and render a dedicated error UI when tests cannot be loaded (clear message + Retry button wired to refetch) so the skeleton/spinner cannot remain indefinitely."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Add a global CSS override in index.css to enforce non-transparent Radix/Sheet overlay and correct overlay/content stacking (z-index) without editing any ui component files.",
+      "summary": "Make the mobile Sheet menu always render with a full-viewport dimmed overlay and correct stacking behind the panel but above content.",
       "acceptanceCriteria": [
-        "The CSS fix is implemented only via app-level styles (e.g., index.css) and/or className props in app-owned components (e.g., Header.tsx), and does not require editing any files under frontend/src/components/ui.",
-        "The overlay/content stacking works correctly: header/menu button is not visually lost behind a transparent layer; the overlay sits above the app content and the sheet content sits above the overlay.",
-        "The fix works consistently across at least these views: landing, about, dashboard, admin (when available)."
+        "Opening the mobile menu on small screens always shows the underlying page dimmed by a non-transparent overlay covering the full viewport.",
+        "The menu panel background remains opaque (not transparent) on mobile.",
+        "Tapping outside the menu (on the overlay) closes the menu reliably.",
+        "The overlay/menu z-index stacking prevents the page from appearing blank/transparent and prevents page-shift artifacts while the menu is open."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/index.css",
-          "operation": "modify",
-          "description": "Implement a targeted, defensive override for Radix Sheet/Dialog portal elements (overlay + content) to enforce: (1) overlay has a consistent dim background (non-transparent), (2) content has an opaque background matching theme variables, and (3) overlay/content z-index ordering is correct on mobile. Must not modify any files under frontend/src/components/ui. Verify the component's usage instructions before implementing."
-        },
-        {
           "path": "frontend/src/components/Header.tsx",
           "operation": "modify",
-          "description": "Align Header’s mobile Sheet className(s) with the global CSS override by adding stable, app-owned class hooks (e.g., a unique class on SheetContent) and ensuring the sheet panel always uses an opaque background in both themes. Verify the component's usage instructions before implementing."
+          "description": "Fix Sheet composition so an overlay/backdrop is always present and correctly layered: ensure the Sheet renders an overlay element (prefer using the exported SheetOverlay from the existing shadcn Sheet composition if available) with fixed positioning (inset-0), a dark semi-transparent background, and z-index below the menu panel but above page content; keep the panel background explicitly opaque via existing classes."
+        },
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Add/adjust global CSS overrides (without touching frontend/src/components/ui) to guarantee the mobile Sheet overlay covers the viewport and stacks correctly: enforce fixed inset-0, non-transparent dark backdrop styling, and stable z-index for the overlay and .mobile-menu-sheet-content so the page never appears transparent/blank under the menu."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Prevent the mobile menu from leaving intermediate visual states by closing it deterministically on navigation and during view-activation overlay transitions.",
+      "summary": "Harden the mobile Sheet open/close lifecycle by resetting menu state on navigation and during view activation to prevent intermediate visual states.",
       "acceptanceCriteria": [
-        "While the mobile menu is open, navigating using any menu item always closes the menu and lands on the selected view without a blank/transparent screen.",
-        "If the ViewActivationOverlay is shown (e.g., navigating to dashboard/admin), the UI remains readable and does not become transparent/blank when the mobile menu was previously opened.",
-        "Repeated open/close cycles of the mobile menu do not degrade the page rendering (no intermittent blank state)."
+        "Navigating via any mobile menu action closes the menu before switching views.",
+        "If view activation starts while the menu is open, the menu closes and the UI returns to a stable non-blank state.",
+        "No regressions to desktop navigation behavior."
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/Header.tsx",
           "operation": "modify",
-          "description": "Make mobile Sheet open/close state resilient: close the menu before triggering navigation (optionally defer navigation by a microtask/animation frame to allow Radix close animation/portal cleanup), and add a defensive effect to force-close the menu when dashboard/admin view activation begins (via ViewActivationContext flags already used in Header). Verify the component's usage instructions before implementing."
+          "description": "Strengthen mobile menu lifecycle handling: close the Sheet before any navigation action (ensure close happens synchronously before calling onNavigate), and add guards/effects that reset mobileMenuOpen when currentView changes and when activation state begins, preventing any transient/blank state if activation triggers while the menu is open."
         },
         {
-          "path": "frontend/src/components/ViewActivationOverlay.tsx",
+          "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Confirm the overlay remains visually readable alongside (or after) Sheet usage by ensuring its stacking context remains above app content and that its background is never transparent/blank under mobile conditions (z-index alignment with the Sheet fixes)."
+          "description": "Ensure view activation transitions remain stable even if a view's data fetch fails: keep activation completion independent of a successful fetch by relying on each view to finish activation on settled queries (and maintain existing safety timeout), so navigation/activation cannot be visually blocked by mobile menu state changes."
         }
       ]
     }

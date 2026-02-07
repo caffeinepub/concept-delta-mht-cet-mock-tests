@@ -2,11 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-fix-the-mobile-md-hidden-right-side-menu-three-line-three-dot-menu-button-in-the-header-so-that-opening-it-never-results-in-a-transparent-blank-page-the-underlying-page-must-remain-visible-behind-a-proper-dimmed-overlay-and-the-sheet-panel-must-render-with-an-opaque-background-on-all-mobile-screens",
-      "featureTitle": "Fix the mobile (md:hidden) right-side menu (three-line/three-dot menu button in the header) so that opening it never results in a transparent/blank page; the underlying page must remain visible behind a proper dimmed overlay, and the sheet panel must render with an opaque background on all mobile screens.",
+      "featureId": "feature-fix-the-dashboard-loading-activation-logic-so-the-dashboard-never-stays-stuck-in-a-loading-state-when-the-test-list-api-call-fails-in-the-frontend-the-ui-must-stop-showing-the-loading-skeleton-spinner-once-the-tests-query-settles-success-or-error-and-must-show-a-clear-error-message-with-a-retry-action-when-tests-cannot-be-loaded",
+      "featureTitle": "Fix the Dashboard loading/activation logic so the dashboard never stays stuck in a loading state when the test list API call fails in the frontend. The UI must stop showing the loading skeleton/spinner once the tests query settles (success OR error), and must show a clear error message with a retry action when tests cannot be loaded.",
       "files": [
-        "frontend/src/components/Header.tsx",
-        "frontend/src/index.css"
+        "frontend/src/pages/Dashboard.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -24,8 +23,8 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-a-defensive-global-css-override-in-frontend-src-index-css-for-the-radix-sheet-overlay-and-content-to-ensure-the-overlay-has-a-non-transparent-background-and-correct-stacking-on-mobile-z-index-without-modifying-any-files-under-frontend-src-components-ui",
-      "featureTitle": "Add a defensive, global CSS override (in frontend/src/index.css) for the Radix/Sheet overlay and content to ensure the overlay has a non-transparent background and correct stacking on mobile (z-index), without modifying any files under frontend/src/components/ui.",
+      "featureId": "feature-fix-the-mobile-menu-transparency-blank-background-issue-by-ensuring-the-sheet-mobile-menu-always-renders-with-a-full-screen-dimmed-overlay-backdrop-behind-it-and-correct-stacking-order-add-a-proper-overlay-element-or-global-css-overrides-so-the-overlay-covers-the-viewport-inset-0-has-a-dark-semi-transparent-background-and-sits-behind-the-menu-panel-but-above-page-content",
+      "featureTitle": "Fix the mobile menu transparency/blank-background issue by ensuring the Sheet (mobile menu) always renders with a full-screen dimmed overlay/backdrop behind it and correct stacking order. Add a proper overlay element or global CSS overrides so the overlay covers the viewport (inset-0), has a dark semi-transparent background, and sits behind the menu panel but above page content.",
       "files": [
         "frontend/src/components/Header.tsx",
         "frontend/src/index.css"
@@ -46,11 +45,10 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-prevent-recurrence-of-the-mobile-menu-rendering-issue-by-ensuring-the-mobile-sheet-open-close-state-cannot-leave-the-app-in-an-intermediate-visual-state-e-g-by-ensuring-the-menu-closes-on-navigation-and-by-handling-any-edge-cases-where-view-activation-overlays-might-conflict-with-the-sheet",
-      "featureTitle": "Prevent recurrence of the mobile menu rendering issue by ensuring the mobile sheet open/close state cannot leave the app in an intermediate visual state (e.g., by ensuring the menu closes on navigation and by handling any edge cases where view activation overlays might conflict with the sheet).",
+      "featureId": "feature-prevent-recurrence-of-the-mobile-menu-rendering-issue-by-hardening-the-open-close-lifecycle-ensure-the-mobile-sheet-state-is-reset-on-navigation-and-when-view-activation-starts-and-ensure-no-intermediate-visual-state-remains-if-view-activation-triggers-while-the-menu-is-open",
+      "featureTitle": "Prevent recurrence of the mobile menu rendering issue by hardening the open/close lifecycle: ensure the mobile Sheet state is reset on navigation and when view activation starts, and ensure no intermediate visual state remains if view activation triggers while the menu is open.",
       "files": [
-        "frontend/src/components/Header.tsx",
-        "frontend/src/components/ViewActivationOverlay.tsx"
+        "frontend/src/components/Header.tsx"
       ],
       "components": [
         "authorization@4.0.0",

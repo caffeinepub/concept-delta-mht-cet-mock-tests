@@ -1,32 +1,37 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "New project",
-  "architectural_notes": [],
+  "summary": "Web app experiencing frontend issues: dashboard stuck on loading spinner due to failing API fetch handling, and mobile menu overlay/backdrop styling issues causing transparent background/page shift.",
+  "architectural_notes": [
+    "Frontend should handle API fetch failures by terminating loading state and showing an error/empty state (avoid infinite spinners).",
+    "Mobile menu should include a full-screen overlay/backdrop with correct positioning/inset and z-index to prevent transparency and layout shift."
+  ],
   "known_issues": [
-    "Mobile version: tapping the right-side three-dot menu shows a transparent background/blank page; issue reportedly keeps recurring."
+    "Dashboard loading spinner never stops (frontend fetch for tests fails and loading state is not cleared).",
+    "Mobile three-dot menu overlay/backdrop becomes transparent and page shifts (missing/incorrect overlay styling or z-index/inset classes).",
+    "Tooling/session issue: file access blocked, preventing inspection of NavBar and Dashboard files."
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-fix-the-mobile-md-hidden-right-side-menu-three-line-three-dot-menu-button-in-the-header-so-that-opening-it-never-results-in-a-transparent-blank-page-the-underlying-page-must-remain-visible-behind-a-proper-dimmed-overlay-and-the-sheet-panel-must-render-with-an-opaque-background-on-all-mobile-screens",
-      "title": "Fix the mobile (md:hidden) right-side menu (three-line/three-dot menu button in the header) so that opening it never results in a transparent/blank page; the underlying page must remain visible behind a proper dimmed overlay, and the sheet panel must render with an opaque background on all mobile screens.",
+      "id": "feature-fix-the-dashboard-loading-activation-logic-so-the-dashboard-never-stays-stuck-in-a-loading-state-when-the-test-list-api-call-fails-in-the-frontend-the-ui-must-stop-showing-the-loading-skeleton-spinner-once-the-tests-query-settles-success-or-error-and-must-show-a-clear-error-message-with-a-retry-action-when-tests-cannot-be-loaded",
+      "title": "Fix the Dashboard loading/activation logic so the dashboard never stays stuck in a loading state when the test list API call fails in the frontend. The UI must stop showing the loading skeleton/spinner once the tests query settles (success OR error), and must show a clear error message with a retry action when tests cannot be loaded.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-add-a-defensive-global-css-override-in-frontend-src-index-css-for-the-radix-sheet-overlay-and-content-to-ensure-the-overlay-has-a-non-transparent-background-and-correct-stacking-on-mobile-z-index-without-modifying-any-files-under-frontend-src-components-ui",
-      "title": "Add a defensive, global CSS override (in frontend/src/index.css) for the Radix/Sheet overlay and content to ensure the overlay has a non-transparent background and correct stacking on mobile (z-index), without modifying any files under frontend/src/components/ui.",
+      "id": "feature-fix-the-mobile-menu-transparency-blank-background-issue-by-ensuring-the-sheet-mobile-menu-always-renders-with-a-full-screen-dimmed-overlay-backdrop-behind-it-and-correct-stacking-order-add-a-proper-overlay-element-or-global-css-overrides-so-the-overlay-covers-the-viewport-inset-0-has-a-dark-semi-transparent-background-and-sits-behind-the-menu-panel-but-above-page-content",
+      "title": "Fix the mobile menu transparency/blank-background issue by ensuring the Sheet (mobile menu) always renders with a full-screen dimmed overlay/backdrop behind it and correct stacking order. Add a proper overlay element or global CSS overrides so the overlay covers the viewport (inset-0), has a dark semi-transparent background, and sits behind the menu panel but above page content.",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     },
     {
-      "id": "feature-prevent-recurrence-of-the-mobile-menu-rendering-issue-by-ensuring-the-mobile-sheet-open-close-state-cannot-leave-the-app-in-an-intermediate-visual-state-e-g-by-ensuring-the-menu-closes-on-navigation-and-by-handling-any-edge-cases-where-view-activation-overlays-might-conflict-with-the-sheet",
-      "title": "Prevent recurrence of the mobile menu rendering issue by ensuring the mobile sheet open/close state cannot leave the app in an intermediate visual state (e.g., by ensuring the menu closes on navigation and by handling any edge cases where view activation overlays might conflict with the sheet).",
+      "id": "feature-prevent-recurrence-of-the-mobile-menu-rendering-issue-by-hardening-the-open-close-lifecycle-ensure-the-mobile-sheet-state-is-reset-on-navigation-and-when-view-activation-starts-and-ensure-no-intermediate-visual-state-remains-if-view-activation-triggers-while-the-menu-is-open",
+      "title": "Prevent recurrence of the mobile menu rendering issue by hardening the open/close lifecycle: ensure the mobile Sheet state is reset on navigation and when view activation starts, and ensure no intermediate visual state remains if view activation triggers while the menu is open.",
       "reqIds": [
         "REQ-3"
       ],
@@ -34,7 +39,7 @@
     }
   ],
   "new_feature_requests": [],
-  "projectName": "Fix mobile three-dot menu opening to avoid transparent/blank background and recurring menu overlay issue",
+  "projectName": "Fix dashboard infinite loading and mobile menu overlay transparency",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

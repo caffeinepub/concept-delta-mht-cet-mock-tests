@@ -1,72 +1,74 @@
 {
   "kind": "build_request",
-  "title": "Fix mobile three-dot menu opening to avoid transparent/blank background and recurring menu overlay issue",
-  "priority": "high",
+  "title": "Fix dashboard infinite loading and mobile menu overlay transparency",
+  "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Fix the mobile (md:hidden) right-side menu (three-line/three-dot menu button in the header) so that opening it never results in a transparent/blank page; the underlying page must remain visible behind a proper dimmed overlay, and the sheet panel must render with an opaque background on all mobile screens.",
+      "text": "Fix the Dashboard loading/activation logic so the dashboard never stays stuck in a loading state when the test list API call fails in the frontend. The UI must stop showing the loading skeleton/spinner once the tests query settles (success OR error), and must show a clear error message with a retry action when tests cannot be loaded.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "same problem wiil again happen and if if click on right side three dot in mobile version show transparant background page"
+          "The dashboard loader stays forever because the API call that fetches tests is failing in the frontend. So the spinner never stops."
         ]
       },
       "acceptanceCriteria": [
-        "On a mobile viewport, tapping the header menu button opens a right-side panel and a dimmed overlay; the screen never becomes fully transparent/blank.",
-        "The sheet panel background is opaque (not transparent) and uses the app theme colors (light/dark).",
-        "The overlay covers the full viewport and has a visible dim (e.g., semi-transparent dark layer) behind the panel.",
-        "Closing the menu (swipe/close button/tap outside) returns to the exact prior screen without visual corruption."
+        "If fetching test configs fails (React Query error), the Dashboard does not remain on the loading skeleton indefinitely.",
+        "When the tests query errors, the Dashboard renders an error state (English text) indicating tests could not be loaded and provides a Retry button that re-attempts the fetch.",
+        "View activation completion is not blocked by a failed tests fetch (i.e., any view-activation overlay is cleared once queries are settled, not only on success).",
+        "When the tests fetch later succeeds after retry, the normal dashboard content renders without requiring a hard refresh."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Add a defensive, global CSS override (in frontend/src/index.css) for the Radix/Sheet overlay and content to ensure the overlay has a non-transparent background and correct stacking on mobile (z-index), without modifying any files under frontend/src/components/ui.",
+      "text": "Fix the mobile menu transparency/blank-background issue by ensuring the Sheet (mobile menu) always renders with a full-screen dimmed overlay/backdrop behind it and correct stacking order. Add a proper overlay element or global CSS overrides so the overlay covers the viewport (inset-0), has a dark semi-transparent background, and sits behind the menu panel but above page content.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "show transparant background page"
+          "The mobile menu background becomes transparent because the overlay div is missing or has wrong z‑index/inset classes.",
+          "Adding a proper overlay div (full‑screen, dark background, correct z‑index) behind the mobile menu."
         ]
       },
       "acceptanceCriteria": [
-        "The CSS fix is implemented only via app-level styles (e.g., index.css) and/or className props in app-owned components (e.g., Header.tsx), and does not require editing any files under frontend/src/components/ui.",
-        "The overlay/content stacking works correctly: header/menu button is not visually lost behind a transparent layer; the overlay sits above the app content and the sheet content sits above the overlay.",
-        "The fix works consistently across at least these views: landing, about, dashboard, admin (when available)."
+        "Opening the mobile menu on small screens always shows the underlying page dimmed by a non-transparent overlay covering the full viewport.",
+        "The menu panel background remains opaque (not transparent) on mobile.",
+        "Tapping outside the menu (on the overlay) closes the menu reliably.",
+        "The overlay/menu z-index stacking prevents the page from appearing blank/transparent and prevents page-shift artifacts while the menu is open."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Prevent recurrence of the mobile menu rendering issue by ensuring the mobile sheet open/close state cannot leave the app in an intermediate visual state (e.g., by ensuring the menu closes on navigation and by handling any edge cases where view activation overlays might conflict with the sheet).",
+      "text": "Prevent recurrence of the mobile menu rendering issue by hardening the open/close lifecycle: ensure the mobile Sheet state is reset on navigation and when view activation starts, and ensure no intermediate visual state remains if view activation triggers while the menu is open.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "same problem wiil again happen"
+          "day by day new updates not work properly . if i tell you solve some problem then you create new problem in web site"
         ]
       },
       "acceptanceCriteria": [
-        "While the mobile menu is open, navigating using any menu item always closes the menu and lands on the selected view without a blank/transparent screen.",
-        "If the ViewActivationOverlay is shown (e.g., navigating to dashboard/admin), the UI remains readable and does not become transparent/blank when the mobile menu was previously opened.",
-        "Repeated open/close cycles of the mobile menu do not degrade the page rendering (no intermittent blank state)."
+        "Navigating via any mobile menu action closes the menu before switching views.",
+        "If view activation starts while the menu is open, the menu closes and the UI returns to a stable non-blank state.",
+        "No regressions to desktop navigation behavior."
       ]
     }
   ],
   "constraints": [
-    "Do not modify any files under frontend/src/components/ui (read-only UI components must be composed/overridden, not edited).",
-    "Keep the backend unchanged; this issue should be resolved purely in the frontend UI/CSS behavior."
+    "Do not modify any files under frontend/src/components/ui (read-only). Fix overlay behavior via composition in app components and/or global CSS in frontend/src/index.css.",
+    "Keep changes limited to frontend bug fixes (no backend changes)."
   ],
   "nonGoals": [
-    "Adding new navigation items or changing the information architecture of the header menu.",
-    "Implementing real-time features or any backend-driven changes.",
-    "Reworking the overall visual theme beyond what is necessary to fix the transparency/overlay bug."
+    "Adding new dashboard features beyond loading/error handling (e.g., new filters, new data types).",
+    "Changing authentication/Internet Identity behavior.",
+    "Redesigning the entire header/navigation; only fix overlay/backdrop and stability issues."
   ],
   "imageRequirements": {
     "required": [],

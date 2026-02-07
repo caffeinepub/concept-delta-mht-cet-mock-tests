@@ -1,11 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Fix the mobile header menu (three-dot/three-line button) so opening/closing it never causes a transparent/blank screen, and ensure the sheet + overlay stack and render correctly across the app.
+**Goal:** Fix the Dashboard so it never gets stuck in an infinite loading state when the tests API call fails, and stabilize the mobile menu overlay so it always dims the page correctly and doesn’t become transparent/blank during navigation or view activation.
 
 **Planned changes:**
-- Ensure the mobile sheet panel renders with an opaque background (theme-aware for light/dark) and the dimmed overlay always appears behind it without the page turning transparent/blank.
-- Add a defensive global CSS override in `frontend/src/index.css` to force correct Radix/Sheet overlay + content background and z-index stacking on mobile, without editing any files under `frontend/src/components/ui`.
-- Harden menu open/close behavior to avoid intermediate visual states (e.g., close the menu on navigation and handle conflicts with `ViewActivationOverlay`) and verify repeated open/close cycles remain stable across landing, about, dashboard, and admin views.
+- Update Dashboard loading/activation flow so loading UI ends when the tests query settles (success or error), and render a clear error state with a Retry action when tests cannot be loaded.
+- Ensure any view-activation overlay/state is cleared once relevant queries settle, not only on successful responses.
+- Fix mobile menu (Sheet) backdrop/overlay to always cover the full viewport with a dark semi-transparent dim layer, with correct z-index stacking behind the panel but above page content (without modifying `frontend/src/components/ui`).
+- Harden mobile menu open/close lifecycle: close/reset the mobile Sheet on navigation actions and when view activation starts, preventing intermediate blank/transparent states and avoiding desktop regressions.
 
-**User-visible outcome:** On mobile, tapping the header menu reliably opens a right-side panel over a full-viewport dimmed overlay (no blank/transparent screen), and closing or navigating from the menu always returns to the intended view without visual corruption.
+**User-visible outcome:** The Dashboard stops showing an endless spinner if tests fail to load, instead showing an error with a Retry button that can recover without a hard refresh; on mobile, opening the menu reliably dims the page with a proper overlay, tapping outside closes it, and navigating/activating views won’t leave the UI in a blank or unstable state.
