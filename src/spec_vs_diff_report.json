@@ -1,16 +1,41 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-07T13:09:35.897Z",
-  "summary": "Diff implements fixes for dashboard activation/loading settling on query error, adds global CSS overrides to ensure Radix Sheet/Dialog overlays are full-viewport and dimmed with correct stacking, and hardens mobile menu lifecycle by force-closing the menu on navigation and during view activation.",
-  "missing_requirements": [],
-  "hallucinated_features": [],
-  "confidence": 0.74,
+  "generatedAt": "2026-02-09T14:13:23.791Z",
+  "summary": "Frontend hooks were updated to call `getCallerUserProfile`/`saveCallerUserProfile`, invalidate `['currentUserProfile']` on save success, and show an error toast on save failure. However, the diff evidence does not show the required Motoko backend methods being implemented, and there are additional unrelated modifications (metadata/docs) plus a questionable frontend-side construction of backend profile fields.",
+  "missing_requirements": [
+    {
+      "id": "REQ-1",
+      "requirement": "Implement Motoko backend support for caller user profiles by adding public shared methods `getCallerUserProfile()` and `saveCallerUserProfile(...)` in `backend/main.mo`, using `userProfiles` keyed by caller Principal, and returning the created/updated profile (with correct createdAt/lastLogin/testAttempts behavior).",
+      "reason": "The provided diff snippet for `backend/main.mo` shows type definitions and `userProfiles` map initialization, but no evidence of the new public shared methods or their required create/update logic. Because the file is truncated, the implementation cannot be verified from the diff summary.",
+      "evidence": [
+        "backend/main.mo (truncated; shows `let userProfiles = Map.empty<Principal, UserProfile>();` but no `getCallerUserProfile`/`saveCallerUserProfile` methods in visible portion)"
+      ]
+    }
+  ],
+  "hallucinated_features": [
+    {
+      "description": "Frontend constructs a full `BackendUserProfile` with dummy Principal and sets `createdAt`, `lastLogin`, and `testAttempts` client-side before calling `saveCallerUserProfile`.",
+      "reason": "REQ-2 only requires wiring hooks to call backend methods and invalidate/refetch on success; it does not request creating a dummy principal or populating backend-owned fields (and REQ-1 expects backend to set/maintain `createdAt`, `lastLogin`, and `testAttempts`). This extra behavior could also conflict with REQ-1’s intended backend logic.",
+      "evidence": [
+        "frontend/src/hooks/useQueries.ts (truncated): `convertLocalProfileToBackend(...)` sets `testAttempts: []`, `createdAt: BigInt(Date.now() * 1000000)`, `lastLogin: BigInt(Date.now() * 1000000)`; `dummyPrincipal` passed; `actor.saveCallerUserProfile(backendProfile)`"
+      ]
+    },
+    {
+      "description": "Added/updated project metadata and documentation-like summaries unrelated to implementing backend profile methods and wiring React Query hooks.",
+      "reason": "The BuildRequest does not ask to modify project tracking files or add a frontend file summary document.",
+      "evidence": [
+        "project_state.json",
+        "frontend-file-summaries.txt"
+      ]
+    }
+  ],
+  "confidence": 0.62,
   "changed_files": [
+    "backend/main.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/components/Header.tsx",
-    "frontend/src/index.css",
-    "frontend/src/pages/Dashboard.tsx",
+    "frontend/src/components/ProfileSetup.tsx",
+    "frontend/src/hooks/useQueries.ts",
     "project_state.json"
   ]
 }

@@ -1,65 +1,27 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix dashboard query-settled loading and robust mobile Sheet overlay/lifecycle",
+  "title": "Wire profile React Query hooks to backend and ensure Profile Setup overlay dismisses after save",
   "requirements": [
     {
-      "id": "REQ-1",
-      "summary": "Ensure Dashboard stops loading on tests query error, clears activation overlay on query settle, and shows an error state with retry.",
-      "acceptanceCriteria": [
-        "If fetching test configs fails (React Query error), the Dashboard does not remain on the loading skeleton indefinitely.",
-        "When the tests query errors, the Dashboard renders an error state (English text) indicating tests could not be loaded and provides a Retry button that re-attempts the fetch.",
-        "View activation completion is not blocked by a failed tests fetch (i.e., any view-activation overlay is cleared once queries are settled, not only on success).",
-        "When the tests fetch later succeeds after retry, the normal dashboard content renders without requiring a hard refresh."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/Dashboard.tsx",
-          "operation": "modify",
-          "description": "Update the tests React Query consumption to use settled state (success OR error) rather than only loading flags: read tests query error/isError/isFetched/refetch, call finishActivation when the profile query and tests query are settled, and render a dedicated error UI when tests cannot be loaded (clear message + Retry button wired to refetch) so the skeleton/spinner cannot remain indefinitely."
-        }
-      ]
-    },
-    {
       "id": "REQ-2",
-      "summary": "Make the mobile Sheet menu always render with a full-viewport dimmed overlay and correct stacking behind the panel but above content.",
+      "summary": "Update React Query profile hooks to call backend get/save methods, keep query key ['currentUserProfile'], invalidate/refetch on save, and show an English error toast on save failure.",
       "acceptanceCriteria": [
-        "Opening the mobile menu on small screens always shows the underlying page dimmed by a non-transparent overlay covering the full viewport.",
-        "The menu panel background remains opaque (not transparent) on mobile.",
-        "Tapping outside the menu (on the overlay) closes the menu reliably.",
-        "The overlay/menu z-index stacking prevents the page from appearing blank/transparent and prevents page-shift artifacts while the menu is open."
+        "`useGetCallerUserProfile` calls the backend `getCallerUserProfile()` and returns a `UserProfile` when present, otherwise `null`.",
+        "`useSaveCallerUserProfile` calls backend `saveCallerUserProfile(...)` and no longer throws the hardcoded \"Profile save method not yet implemented\" error.",
+        "After a successful profile save, `['currentUserProfile']` is invalidated and refetched, and `App.tsx` stops rendering `<ProfileSetup />` (overlay disappears and the app becomes usable).",
+        "On save failure, the Profile Setup dialog remains open and a user-visible error toast is shown (in English)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/Header.tsx",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Fix Sheet composition so an overlay/backdrop is always present and correctly layered: ensure the Sheet renders an overlay element (prefer using the exported SheetOverlay from the existing shadcn Sheet composition if available) with fixed positioning (inset-0), a dark semi-transparent background, and z-index below the menu panel but above page content; keep the panel background explicitly opaque via existing classes."
+          "description": "Replace the stubbed profile query/mutation with real actor calls to `getCallerUserProfile()` and `saveCallerUserProfile(...)` while keeping the existing query key `['currentUserProfile']`. Add minimal type/shape bridging so the hook returns `UserProfile | null` to the app (including mapping backend `id` to the local string form if needed). Ensure `enabled` correctly waits for the actor (avoid modal flash), and on successful save invalidate/refetch `['currentUserProfile']` so `App.tsx` no longer shows `<ProfileSetup />`. Add `onError` handling that shows an English error toast (using the existing Sonner toast system) without closing the dialog. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/index.css",
+          "path": "frontend/src/components/ProfileSetup.tsx",
           "operation": "modify",
-          "description": "Add/adjust global CSS overrides (without touching frontend/src/components/ui) to guarantee the mobile Sheet overlay covers the viewport and stacks correctly: enforce fixed inset-0, non-transparent dark backdrop styling, and stable z-index for the overlay and .mobile-menu-sheet-content so the page never appears transparent/blank under the menu."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "Harden the mobile Sheet open/close lifecycle by resetting menu state on navigation and during view activation to prevent intermediate visual states.",
-      "acceptanceCriteria": [
-        "Navigating via any mobile menu action closes the menu before switching views.",
-        "If view activation starts while the menu is open, the menu closes and the UI returns to a stable non-blank state.",
-        "No regressions to desktop navigation behavior."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/Header.tsx",
-          "operation": "modify",
-          "description": "Strengthen mobile menu lifecycle handling: close the Sheet before any navigation action (ensure close happens synchronously before calling onNavigate), and add guards/effects that reset mobileMenuOpen when currentView changes and when activation state begins, preventing any transient/blank state if activation triggers while the menu is open."
-        },
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Ensure view activation transitions remain stable even if a view's data fetch fails: keep activation completion independent of a successful fetch by relying on each view to finish activation on settled queries (and maintain existing safety timeout), so navigation/activation cannot be visually blocked by mobile menu state changes."
+          "description": "Align the submit flow with the updated `useSaveCallerUserProfile` behavior: ensure the mutation is called with the expected input shape and that save failures keep the dialog open while showing a user-visible English toast (avoid duplicating toasts if the hook now toasts on error). Keep existing English validation messages and success toast behavior."
         }
       ]
     }

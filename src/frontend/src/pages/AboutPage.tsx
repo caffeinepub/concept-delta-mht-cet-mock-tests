@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+import { useViewActivation } from '../contexts/ViewActivationContext';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +12,13 @@ interface AboutPageProps {
 }
 
 export default function AboutPage({ onNavigate }: AboutPageProps) {
+  const { finishActivation } = useViewActivation();
+
+  // Signal view ready on mount
+  useEffect(() => {
+    finishActivation();
+  }, [finishActivation]);
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header onNavigate={onNavigate} currentView="about" />

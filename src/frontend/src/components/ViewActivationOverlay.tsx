@@ -20,8 +20,8 @@ export default function ViewActivationOverlay() {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-sm flex items-center justify-center">
-      <div className="bg-card border border-border rounded-lg p-8 shadow-lg flex flex-col items-center gap-4 max-w-sm mx-4">
+    <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center">
+      <div className="bg-card border-2 border-border rounded-lg p-8 shadow-2xl flex flex-col items-center gap-4 max-w-sm mx-4">
         <Loader2 className="w-12 h-12 animate-spin text-primary" />
         <div className="text-center">
           <h3 className="text-lg font-semibold text-foreground mb-1">

@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { useGetCallerUserProfile } from '../hooks/useQueries';
+import { useViewActivation } from '../contexts/ViewActivationContext';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import ShareButtons from '../components/ShareButtons';
@@ -11,14 +13,20 @@ import { BookOpen, Clock, Target, TrendingUp, GraduationCap, FileText } from 'lu
 import { SiTelegram, SiYoutube } from 'react-icons/si';
 
 interface LandingPageProps {
-  onNavigate: (AppView) => void;
+  onNavigate: (view: AppView) => void;
 }
 
 export default function LandingPage({ onNavigate }: LandingPageProps) {
   const { identity, login, isLoggingIn } = useInternetIdentity();
   const { data: userProfile } = useGetCallerUserProfile();
+  const { finishActivation } = useViewActivation();
 
   const isAuthenticated = !!identity;
+
+  // Signal view ready on mount
+  useEffect(() => {
+    finishActivation();
+  }, [finishActivation]);
 
   const handleStartTest = async () => {
     if (!isAuthenticated) {
@@ -191,10 +199,10 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
         <section className="py-10 sm:py-12 md:py-16 lg:py-20 bg-background">
           <div className="container px-4 sm:px-6">
             <div className="text-center mb-8 sm:mb-10 md:mb-12">
-              <h2 className="text-xl xs:text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 px-2 sm:px-4 text-text-primary leading-tight">
+              <h2 className="text-xl xs:text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 px-2 sm:px-4 text-foreground leading-tight">
                 Why Choose Concept Delta?
               </h2>
-              <p className="text-text-secondary text-sm xs:text-base sm:text-lg max-w-2xl mx-auto px-2 sm:px-4 leading-relaxed">
+              <p className="text-muted-foreground text-sm xs:text-base sm:text-lg max-w-2xl mx-auto px-2 sm:px-4 leading-relaxed">
                 Comprehensive preparation tools designed for MHT-CET success with Maharashtra top engineering college experience
               </p>
             </div>
@@ -204,8 +212,8 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
                   <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
                     <BookOpen className="w-6 h-6 text-primary" />
                   </div>
-                  <h3 className="font-semibold text-base sm:text-lg text-text-primary leading-tight">Real Exam Pattern</h3>
-                  <p className="text-sm text-text-secondary leading-relaxed">
+                  <h3 className="font-semibold text-base sm:text-lg text-foreground leading-tight">Real Exam Pattern</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
                     Tests designed to match the actual MHT-CET exam format and difficulty level
                   </p>
                 </CardContent>
@@ -215,8 +223,8 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
                   <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
                     <Clock className="w-6 h-6 text-primary" />
                   </div>
-                  <h3 className="font-semibold text-base sm:text-lg text-text-primary leading-tight">Timed Practice</h3>
-                  <p className="text-sm text-text-secondary leading-relaxed">
+                  <h3 className="font-semibold text-base sm:text-lg text-foreground leading-tight">Timed Practice</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
                     Simulate real exam conditions with countdown timers and auto-submit
                   </p>
                 </CardContent>
@@ -226,9 +234,9 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
                   <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
                     <Target className="w-6 h-6 text-primary" />
                   </div>
-                  <h3 className="font-semibold text-base sm:text-lg text-text-primary leading-tight">Chapter-wise Tests</h3>
-                  <p className="text-sm text-text-secondary leading-relaxed">
-                    Focus on specific chapters or take full syllabus mock tests
+                  <h3 className="font-semibold text-base sm:text-lg text-foreground leading-tight">Detailed Analysis</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Get comprehensive performance insights and identify areas for improvement
                   </p>
                 </CardContent>
               </Card>
@@ -237,37 +245,13 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
                   <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
                     <TrendingUp className="w-6 h-6 text-primary" />
                   </div>
-                  <h3 className="font-semibold text-base sm:text-lg text-text-primary leading-tight">Detailed Analysis</h3>
-                  <p className="text-sm text-text-secondary leading-relaxed">
-                    Get comprehensive performance reports with percentile estimates
+                  <h3 className="font-semibold text-base sm:text-lg text-foreground leading-tight">Track Progress</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Monitor your improvement over time with detailed performance tracking
                   </p>
                 </CardContent>
               </Card>
             </div>
-          </div>
-        </section>
-
-        {/* CTA Section */}
-        <section className="py-10 sm:py-12 md:py-16 lg:py-20">
-          <div className="container px-4 sm:px-6">
-            <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-              <CardContent className="py-8 sm:py-10 md:py-12 px-4 sm:px-6 text-center space-y-4 sm:space-y-5 md:space-y-6">
-                <h2 className="text-xl xs:text-2xl sm:text-3xl md:text-4xl font-bold px-2 sm:px-4 text-text-primary leading-tight">
-                  Ready to Start Your Preparation?
-                </h2>
-                <p className="text-text-secondary text-sm xs:text-base sm:text-lg max-w-2xl mx-auto px-2 sm:px-4 leading-relaxed">
-                  Join thousands of MHT-CET aspirants who are preparing with CET strategy by COEP student
-                </p>
-                <Button
-                  size="lg"
-                  onClick={handleStartTest}
-                  disabled={isLoggingIn}
-                  className="text-sm xs:text-base sm:text-lg px-6 xs:px-7 sm:px-8 h-12 xs:h-13 sm:h-14 w-full sm:w-auto min-h-[44px]"
-                >
-                  {isLoggingIn ? 'Loading...' : 'Get Started Now'}
-                </Button>
-              </CardContent>
-            </Card>
           </div>
         </section>
       </main>

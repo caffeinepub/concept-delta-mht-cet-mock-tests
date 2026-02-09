@@ -54,7 +54,7 @@ export default function SuggestionModerationPanel() {
       <Card className="bg-card border-border">
         <CardContent className="py-12 text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-3 text-primary" />
-          <p className="text-sm text-text-secondary">Loading suggestions...</p>
+          <p className="text-sm text-muted-foreground">Loading suggestions...</p>
         </CardContent>
       </Card>
     );
@@ -65,7 +65,7 @@ export default function SuggestionModerationPanel() {
       <Card className="bg-card border-border">
         <CardContent className="py-12 text-center">
           <AlertCircle className="w-12 h-12 text-destructive mx-auto mb-3" />
-          <p className="text-sm text-text-secondary">Failed to load suggestions</p>
+          <p className="text-sm text-muted-foreground">Failed to load suggestions</p>
         </CardContent>
       </Card>
     );
@@ -77,11 +77,11 @@ export default function SuggestionModerationPanel() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-lg sm:text-xl text-text-primary flex items-center gap-2">
+              <CardTitle className="text-lg sm:text-xl text-foreground flex items-center gap-2">
                 <MessageSquare className="w-5 h-5" />
                 Suggestions & Feedback
               </CardTitle>
-              <CardDescription className="text-xs sm:text-sm text-text-secondary">
+              <CardDescription className="text-xs sm:text-sm text-muted-foreground">
                 Review and moderate user feedback
               </CardDescription>
             </div>
@@ -92,14 +92,14 @@ export default function SuggestionModerationPanel() {
         </CardHeader>
         <CardContent>
           {suggestions.length === 0 ? (
-            <div className="text-center py-12 text-text-secondary">
+            <div className="text-center py-12 text-muted-foreground">
               <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-50" />
               <p>No suggestions submitted yet</p>
             </div>
           ) : (
             <ScrollArea className="h-[500px] pr-4">
               <div className="space-y-3">
-                {suggestions.map((suggestion) => (
+                {suggestions.map((suggestion: any) => (
                   <Card key={suggestion.id.toString()} className="bg-muted/30 border-border">
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between gap-3">
@@ -108,11 +108,11 @@ export default function SuggestionModerationPanel() {
                             <Badge variant="secondary" className="text-xs">
                               {suggestion.author}
                             </Badge>
-                            <span className="text-xs text-text-muted">
+                            <span className="text-xs text-muted-foreground">
                               {formatTimestamp(suggestion.timestamp)}
                             </span>
                           </div>
-                          <p className="text-sm text-text-primary whitespace-pre-wrap break-words">
+                          <p className="text-sm text-foreground whitespace-pre-wrap break-words">
                             {suggestion.feedback}
                           </p>
                         </div>
@@ -134,7 +134,6 @@ export default function SuggestionModerationPanel() {
         </CardContent>
       </Card>
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

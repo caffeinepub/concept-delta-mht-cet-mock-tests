@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from 'react';
 import { AppView } from '../App';
 
 interface ViewActivationState {
@@ -25,15 +25,43 @@ export function ViewActivationProvider({ children }: { children: ReactNode }) {
     startTime: null,
   });
 
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const currentViewRef = useRef<AppView | null>(null);
+
   const startActivation = useCallback((view: AppView) => {
+    // Clear any existing timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
+    currentViewRef.current = view;
     setActivationState({
       isActivating: true,
       targetView: view,
       startTime: Date.now(),
     });
+
+    // Set new safety timeout
+    timeoutRef.current = setTimeout(() => {
+      console.warn(`View activation timeout for ${view} - forcing finish`);
+      setActivationState({
+        isActivating: false,
+        targetView: null,
+        startTime: null,
+      });
+      currentViewRef.current = null;
+    }, ACTIVATION_TIMEOUT);
   }, []);
 
   const finishActivation = useCallback(() => {
+    // Clear timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
+    currentViewRef.current = null;
     setActivationState({
       isActivating: false,
       targetView: null,
@@ -45,24 +73,14 @@ export function ViewActivationProvider({ children }: { children: ReactNode }) {
     return activationState.isActivating && activationState.targetView === view;
   }, [activationState]);
 
-  // Safety timeout to prevent indefinite loading
+  // Cleanup on unmount
   useEffect(() => {
-    if (activationState.isActivating && activationState.startTime) {
-      const elapsed = Date.now() - activationState.startTime;
-      const remaining = ACTIVATION_TIMEOUT - elapsed;
-
-      if (remaining > 0) {
-        const timeoutId = setTimeout(() => {
-          console.warn('View activation timeout - forcing finish');
-          finishActivation();
-        }, remaining);
-
-        return () => clearTimeout(timeoutId);
-      } else {
-        finishActivation();
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
       }
-    }
-  }, [activationState, finishActivation]);
+    };
+  }, []);
 
   return (
     <ViewActivationContext.Provider value={{ activationState, startActivation, finishActivation, isActivatingView }}>

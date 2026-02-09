@@ -1,77 +1,71 @@
 {
   "kind": "build_request",
-  "title": "Fix dashboard infinite loading and mobile menu overlay transparency",
+  "title": "Fix Profile Setup overlay by implementing backend user profile methods and wiring React Query hooks",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Fix the Dashboard loading/activation logic so the dashboard never stays stuck in a loading state when the test list API call fails in the frontend. The UI must stop showing the loading skeleton/spinner once the tests query settles (success OR error), and must show a clear error message with a retry action when tests cannot be loaded.",
-      "target": "frontend",
+      "text": "Implement Motoko backend support for caller user profiles by adding public shared methods `getCallerUserProfile()` and `saveCallerUserProfile(...)` in `backend/main.mo`, storing profiles in the existing `userProfiles` map keyed by caller Principal, and returning the created/updated profile.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-user-1",
+          "msg-user-2"
         ],
         "quotes": [
-          "The dashboard loader stays forever because the API call that fetches tests is failing in the frontend. So the spinner never stops."
+          "work on solution",
+          "Profile save method not yet implemented in backend. Please add getCallerUserProfile() and saveCallerUserProfile() methods to backend/main.mo"
         ]
       },
       "acceptanceCriteria": [
-        "If fetching test configs fails (React Query error), the Dashboard does not remain on the loading skeleton indefinitely.",
-        "When the tests query errors, the Dashboard renders an error state (English text) indicating tests could not be loaded and provides a Retry button that re-attempts the fetch.",
-        "View activation completion is not blocked by a failed tests fetch (i.e., any view-activation overlay is cleared once queries are settled, not only on success).",
-        "When the tests fetch later succeeds after retry, the normal dashboard content renders without requiring a hard refresh."
+        "Calling `getCallerUserProfile()` as an authenticated user returns null/none when no profile exists for the caller.",
+        "Calling `saveCallerUserProfile(...)` creates a new profile for the caller when none exists, with `id = caller`, `createdAt` set on first create, `lastLogin` set/updated on save, and `testAttempts` initialized to an empty array.",
+        "Calling `saveCallerUserProfile(...)` for an existing caller updates the profile fields and updates `lastLogin` without resetting `createdAt` or overwriting `testAttempts`.",
+        "The canister Candid includes both methods and the frontend actor can call them without trapping with \"Method not implemented\"."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Fix the mobile menu transparency/blank-background issue by ensuring the Sheet (mobile menu) always renders with a full-screen dimmed overlay/backdrop behind it and correct stacking order. Add a proper overlay element or global CSS overrides so the overlay covers the viewport (inset-0), has a dark semi-transparent background, and sits behind the menu panel but above page content.",
+      "text": "Wire the frontend React Query hooks to the real backend profile methods: update `useGetCallerUserProfile` and `useSaveCallerUserProfile` in `frontend/src/hooks/useQueries.ts` to call the backend methods, keep the existing query key `['currentUserProfile']`, and ensure the query is invalidated/refetched on successful save so the Profile Setup dialog is dismissed by `App.tsx` logic.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-user-1"
         ],
         "quotes": [
-          "The mobile menu background becomes transparent because the overlay div is missing or has wrong z‑index/inset classes.",
-          "Adding a proper overlay div (full‑screen, dark background, correct z‑index) behind the mobile menu."
+          "work on solution"
         ]
       },
       "acceptanceCriteria": [
-        "Opening the mobile menu on small screens always shows the underlying page dimmed by a non-transparent overlay covering the full viewport.",
-        "The menu panel background remains opaque (not transparent) on mobile.",
-        "Tapping outside the menu (on the overlay) closes the menu reliably.",
-        "The overlay/menu z-index stacking prevents the page from appearing blank/transparent and prevents page-shift artifacts while the menu is open."
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Prevent recurrence of the mobile menu rendering issue by hardening the open/close lifecycle: ensure the mobile Sheet state is reset on navigation and when view activation starts, and ensure no intermediate visual state remains if view activation triggers while the menu is open.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "day by day new updates not work properly . if i tell you solve some problem then you create new problem in web site"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Navigating via any mobile menu action closes the menu before switching views.",
-        "If view activation starts while the menu is open, the menu closes and the UI returns to a stable non-blank state.",
-        "No regressions to desktop navigation behavior."
+        "`useGetCallerUserProfile` calls the backend `getCallerUserProfile()` and returns a `UserProfile` when present, otherwise `null`.",
+        "`useSaveCallerUserProfile` calls backend `saveCallerUserProfile(...)` and no longer throws the hardcoded \"Profile save method not yet implemented\" error.",
+        "After a successful profile save, `['currentUserProfile']` is invalidated and refetched, and `App.tsx` stops rendering `<ProfileSetup />` (overlay disappears and the app becomes usable).",
+        "On save failure, the Profile Setup dialog remains open and a user-visible error toast is shown (in English)."
       ]
     }
   ],
   "constraints": [
-    "Do not modify any files under frontend/src/components/ui (read-only). Fix overlay behavior via composition in app components and/or global CSS in frontend/src/index.css.",
-    "Keep changes limited to frontend bug fixes (no backend changes)."
+    "Backend must remain a single Motoko actor in `backend/main.mo` (no additional backend services).",
+    "Do not edit any files under `frontend/src/components/ui` or any paths listed as immutable in SYSTEM_CONTEXT.",
+    "Use English for any user-facing text."
   ],
   "nonGoals": [
-    "Adding new dashboard features beyond loading/error handling (e.g., new filters, new data types).",
-    "Changing authentication/Internet Identity behavior.",
-    "Redesigning the entire header/navigation; only fix overlay/backdrop and stability issues."
+    "Implementing other stubbed backend methods (tests, questions, comments, suggestions, admin panel) beyond what is required to fix profile creation/fetch.",
+    "Adding third-party authentication providers (only Internet Identity is supported).",
+    "Changing the overall landing page/dashboard feature set beyond ensuring the profile overlay can be dismissed."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

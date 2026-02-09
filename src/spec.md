@@ -1,12 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Fix the Dashboard so it never gets stuck in an infinite loading state when the tests API call fails, and stabilize the mobile menu overlay so it always dims the page correctly and doesn’t become transparent/blank during navigation or view activation.
+**Goal:** Remove the blocking Profile Setup overlay by implementing backend user profile methods and wiring the frontend React Query hooks to them.
 
 **Planned changes:**
-- Update Dashboard loading/activation flow so loading UI ends when the tests query settles (success or error), and render a clear error state with a Retry action when tests cannot be loaded.
-- Ensure any view-activation overlay/state is cleared once relevant queries settle, not only on successful responses.
-- Fix mobile menu (Sheet) backdrop/overlay to always cover the full viewport with a dark semi-transparent dim layer, with correct z-index stacking behind the panel but above page content (without modifying `frontend/src/components/ui`).
-- Harden mobile menu open/close lifecycle: close/reset the mobile Sheet on navigation actions and when view activation starts, preventing intermediate blank/transparent states and avoiding desktop regressions.
+- Add `getCallerUserProfile()` and `saveCallerUserProfile(...)` as public shared methods in `backend/main.mo`, storing profiles in the existing `userProfiles` map keyed by the caller Principal and returning the created/updated profile.
+- Ensure backend profile save behavior: create on first save (set `id = caller`, set `createdAt`, set/update `lastLogin`, initialize `testAttempts` as empty) and update on subsequent saves (update fields and `lastLogin` without resetting `createdAt` or overwriting `testAttempts`).
+- Update `frontend/src/hooks/useQueries.ts` so `useGetCallerUserProfile` calls `getCallerUserProfile()` (query key remains `['currentUserProfile']`) and returns a `UserProfile` or `null`.
+- Update `useSaveCallerUserProfile` to call `saveCallerUserProfile(...)`, invalidate/refetch `['currentUserProfile']` on success so `App.tsx` stops rendering `<ProfileSetup />`, and show an English error toast on failure while keeping the dialog open.
 
-**User-visible outcome:** The Dashboard stops showing an endless spinner if tests fail to load, instead showing an error with a Retry button that can recover without a hard refresh; on mobile, opening the menu reliably dims the page with a proper overlay, tapping outside closes it, and navigating/activating views won’t leave the UI in a blank or unstable state.
+**User-visible outcome:** After signing in, users can create/save their profile successfully and the Profile Setup overlay closes, allowing normal app usage; if saving fails, an English error toast is shown and the overlay remains open.

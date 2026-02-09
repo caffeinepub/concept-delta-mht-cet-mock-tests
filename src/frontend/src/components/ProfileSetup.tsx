@@ -1,14 +1,13 @@
 import { useState } from 'react';
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { useSaveCallerUserProfile } from '../hooks/useQueries';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ProfileSetup() {
-  const { identity } = useInternetIdentity();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
@@ -18,98 +17,99 @@ export default function ProfileSetup() {
     e.preventDefault();
 
     if (!fullName.trim()) {
-      toast.error('Please enter your name');
+      toast.error('Please enter your full name');
       return;
     }
 
-    if (!mobileNumber.trim() || mobileNumber.length < 10) {
-      toast.error('Please enter a valid mobile number');
+    if (!email.trim()) {
+      toast.error('Please enter your email');
       return;
     }
 
-    if (!identity) {
-      toast.error('Not authenticated');
+    if (!mobileNumber.trim()) {
+      toast.error('Please enter your mobile number');
       return;
     }
 
     try {
       await saveProfile.mutateAsync({
-        id: identity.getPrincipal(),
         fullName: fullName.trim(),
         email: email.trim(),
         mobileNumber: mobileNumber.trim(),
-        testAttempts: [],
-        createdAt: BigInt(Date.now() * 1000000),
-        lastLogin: BigInt(Date.now() * 1000000),
         isYouTubeVerified: false,
-        youtubeVerificationTimestamp: undefined,
+        youtubeVerificationTimestamp: null,
         isBlocked: false,
-        blockTimestamp: undefined,
+        blockTimestamp: null,
       });
       toast.success('Profile created successfully!');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to create profile');
+      // Error toast is already shown by the hook's onError handler
+      console.error('Profile save error:', error);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-primary/10 p-4 sm:p-6">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center space-y-3 sm:space-y-4">
-          <div className="mx-auto mb-2 sm:mb-4 w-16 h-16 sm:w-20 sm:h-20 bg-primary rounded-full flex items-center justify-center">
-            <span className="text-3xl sm:text-4xl font-bold text-primary-foreground">Δ</span>
+    <Dialog open={true}>
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-xl sm:text-2xl">Welcome to Concept Delta!</DialogTitle>
+          <DialogDescription className="text-sm sm:text-base">
+            Please complete your profile to get started with MHT-CET preparation
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 mt-4">
+          <div className="space-y-2">
+            <Label htmlFor="fullName" className="text-sm sm:text-base">Full Name *</Label>
+            <Input
+              id="fullName"
+              type="text"
+              placeholder="Enter your full name"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              required
+              className="h-11 sm:h-12 text-base"
+            />
           </div>
-          <CardTitle className="text-xl sm:text-2xl md:text-3xl">Welcome to Concept Delta</CardTitle>
-          <CardDescription className="text-sm sm:text-base">Complete your profile to get started</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="fullName" className="text-sm sm:text-base">Full Name *</Label>
-              <Input
-                id="fullName"
-                type="text"
-                placeholder="Enter your full name"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                required
-                className="h-11 sm:h-12 text-base"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="mobile" className="text-sm sm:text-base">Mobile Number *</Label>
-              <Input
-                id="mobile"
-                type="tel"
-                placeholder="10-digit mobile number"
-                value={mobileNumber}
-                onChange={(e) => setMobileNumber(e.target.value)}
-                required
-                maxLength={10}
-                className="h-11 sm:h-12 text-base"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm sm:text-base">Email (Optional)</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="your.email@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="h-11 sm:h-12 text-base"
-              />
-            </div>
-            <Button
-              type="submit"
-              className="w-full h-12 sm:h-14 text-base sm:text-lg touch-target"
-              disabled={saveProfile.isPending}
-            >
-              {saveProfile.isPending ? 'Creating Profile...' : 'Complete Setup'}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-sm sm:text-base">Email *</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="h-11 sm:h-12 text-base"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="mobileNumber" className="text-sm sm:text-base">Mobile Number *</Label>
+            <Input
+              id="mobileNumber"
+              type="tel"
+              placeholder="Enter your mobile number"
+              value={mobileNumber}
+              onChange={(e) => setMobileNumber(e.target.value)}
+              required
+              className="h-11 sm:h-12 text-base"
+            />
+          </div>
+          <Button
+            type="submit"
+            className="w-full h-11 sm:h-12 text-base font-semibold"
+            disabled={saveProfile.isPending}
+          >
+            {saveProfile.isPending ? (
+              <>
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                Creating Profile...
+              </>
+            ) : (
+              'Create Profile'
+            )}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

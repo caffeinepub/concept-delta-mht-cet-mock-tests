@@ -2,32 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-fix-the-dashboard-loading-activation-logic-so-the-dashboard-never-stays-stuck-in-a-loading-state-when-the-test-list-api-call-fails-in-the-frontend-the-ui-must-stop-showing-the-loading-skeleton-spinner-once-the-tests-query-settles-success-or-error-and-must-show-a-clear-error-message-with-a-retry-action-when-tests-cannot-be-loaded",
-      "featureTitle": "Fix the Dashboard loading/activation logic so the dashboard never stays stuck in a loading state when the test list API call fails in the frontend. The UI must stop showing the loading skeleton/spinner once the tests query settles (success OR error), and must show a clear error message with a retry action when tests cannot be loaded.",
+      "featureId": "feature-wire-the-frontend-react-query-hooks-to-the-real-backend-profile-methods-update-usegetcalleruserprofile-and-usesavecalleruserprofile-in-frontend-src-hooks-usequeries-ts-to-call-the-backend-methods-keep-the-existing-query-key-currentuserprofile-and-ensure-the-query-is-invalidated-refetched-on-successful-save-so-the-profile-setup-dialog-is-dismissed-by-app-tsx-logic",
+      "featureTitle": "Wire the frontend React Query hooks to the real backend profile methods: update `useGetCallerUserProfile` and `useSaveCallerUserProfile` in `frontend/src/hooks/useQueries.ts` to call the backend methods, keep the existing query key `['currentUserProfile']`, and ensure the query is invalidated/refetched on successful save so the Profile Setup dialog is dismissed by `App.tsx` logic.",
       "files": [
-        "frontend/src/pages/Dashboard.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "camera@1.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-1"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-fix-the-mobile-menu-transparency-blank-background-issue-by-ensuring-the-sheet-mobile-menu-always-renders-with-a-full-screen-dimmed-overlay-backdrop-behind-it-and-correct-stacking-order-add-a-proper-overlay-element-or-global-css-overrides-so-the-overlay-covers-the-viewport-inset-0-has-a-dark-semi-transparent-background-and-sits-behind-the-menu-panel-but-above-page-content",
-      "featureTitle": "Fix the mobile menu transparency/blank-background issue by ensuring the Sheet (mobile menu) always renders with a full-screen dimmed overlay/backdrop behind it and correct stacking order. Add a proper overlay element or global CSS overrides so the overlay covers the viewport (inset-0), has a dark semi-transparent background, and sits behind the menu panel but above page content.",
-      "files": [
-        "frontend/src/components/Header.tsx",
-        "frontend/src/index.css"
+        "frontend/src/components/ProfileSetup.tsx",
+        "frontend/src/hooks/useQueries.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -41,27 +20,6 @@
       ],
       "testIds": [
         "REQ-2"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-prevent-recurrence-of-the-mobile-menu-rendering-issue-by-hardening-the-open-close-lifecycle-ensure-the-mobile-sheet-state-is-reset-on-navigation-and-when-view-activation-starts-and-ensure-no-intermediate-visual-state-remains-if-view-activation-triggers-while-the-menu-is-open",
-      "featureTitle": "Prevent recurrence of the mobile menu rendering issue by hardening the open/close lifecycle: ensure the mobile Sheet state is reset on navigation and when view activation starts, and ensure no intermediate visual state remains if view activation triggers while the menu is open.",
-      "files": [
-        "frontend/src/components/Header.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "camera@1.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-3"
       ],
       "confidence": "high"
     }

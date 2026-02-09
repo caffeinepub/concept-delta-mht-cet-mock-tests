@@ -1,45 +1,33 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Web app experiencing frontend issues: dashboard stuck on loading spinner due to failing API fetch handling, and mobile menu overlay/backdrop styling issues causing transparent background/page shift.",
-  "architectural_notes": [
-    "Frontend should handle API fetch failures by terminating loading state and showing an error/empty state (avoid infinite spinners).",
-    "Mobile menu should include a full-screen overlay/backdrop with correct positioning/inset and z-index to prevent transparency and layout shift."
-  ],
+  "summary": "New project",
+  "architectural_notes": [],
   "known_issues": [
-    "Dashboard loading spinner never stops (frontend fetch for tests fails and loading state is not cleared).",
-    "Mobile three-dot menu overlay/backdrop becomes transparent and page shifts (missing/incorrect overlay styling or z-index/inset classes).",
-    "Tooling/session issue: file access blocked, preventing inspection of NavBar and Dashboard files."
+    "Profile popup/overlay issue traced to missing backend profile-save method; when missing, popup cannot close and leaves a grey/dim overlay."
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-fix-the-dashboard-loading-activation-logic-so-the-dashboard-never-stays-stuck-in-a-loading-state-when-the-test-list-api-call-fails-in-the-frontend-the-ui-must-stop-showing-the-loading-skeleton-spinner-once-the-tests-query-settles-success-or-error-and-must-show-a-clear-error-message-with-a-retry-action-when-tests-cannot-be-loaded",
-      "title": "Fix the Dashboard loading/activation logic so the dashboard never stays stuck in a loading state when the test list API call fails in the frontend. The UI must stop showing the loading skeleton/spinner once the tests query settles (success OR error), and must show a clear error message with a retry action when tests cannot be loaded.",
-      "reqIds": [
-        "REQ-1"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-fix-the-mobile-menu-transparency-blank-background-issue-by-ensuring-the-sheet-mobile-menu-always-renders-with-a-full-screen-dimmed-overlay-backdrop-behind-it-and-correct-stacking-order-add-a-proper-overlay-element-or-global-css-overrides-so-the-overlay-covers-the-viewport-inset-0-has-a-dark-semi-transparent-background-and-sits-behind-the-menu-panel-but-above-page-content",
-      "title": "Fix the mobile menu transparency/blank-background issue by ensuring the Sheet (mobile menu) always renders with a full-screen dimmed overlay/backdrop behind it and correct stacking order. Add a proper overlay element or global CSS overrides so the overlay covers the viewport (inset-0), has a dark semi-transparent background, and sits behind the menu panel but above page content.",
+      "id": "feature-wire-the-frontend-react-query-hooks-to-the-real-backend-profile-methods-update-usegetcalleruserprofile-and-usesavecalleruserprofile-in-frontend-src-hooks-usequeries-ts-to-call-the-backend-methods-keep-the-existing-query-key-currentuserprofile-and-ensure-the-query-is-invalidated-refetched-on-successful-save-so-the-profile-setup-dialog-is-dismissed-by-app-tsx-logic",
+      "title": "Wire the frontend React Query hooks to the real backend profile methods: update `useGetCallerUserProfile` and `useSaveCallerUserProfile` in `frontend/src/hooks/useQueries.ts` to call the backend methods, keep the existing query key `['currentUserProfile']`, and ensure the query is invalidated/refetched on successful save so the Profile Setup dialog is dismissed by `App.tsx` logic.",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
-    },
-    {
-      "id": "feature-prevent-recurrence-of-the-mobile-menu-rendering-issue-by-hardening-the-open-close-lifecycle-ensure-the-mobile-sheet-state-is-reset-on-navigation-and-when-view-activation-starts-and-ensure-no-intermediate-visual-state-remains-if-view-activation-triggers-while-the-menu-is-open",
-      "title": "Prevent recurrence of the mobile menu rendering issue by hardening the open/close lifecycle: ensure the mobile Sheet state is reset on navigation and when view activation starts, and ensure no intermediate visual state remains if view activation triggers while the menu is open.",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "version": 1
     }
   ],
-  "new_feature_requests": [],
-  "projectName": "Fix dashboard infinite loading and mobile menu overlay transparency",
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Implement Motoko backend support for caller user profiles by adding public shared methods `getCallerUserProfile()` and `saveCallerUserProfile(...)` in `backend/main.mo`, storing profiles in the existing `userProfiles` map keyed by caller Principal, and returning the created/updated profile.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "status": "pending"
+    }
+  ],
+  "projectName": "Fix Profile Setup overlay by implementing backend user profile methods and wiring React Query hooks",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

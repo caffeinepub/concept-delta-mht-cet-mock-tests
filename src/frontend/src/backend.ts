@@ -94,116 +94,12 @@ export interface _CaffeineStorageRefillResult {
     topped_up_amount?: bigint;
 }
 export type Time = bigint;
-export interface TestConfig {
-    id: bigint;
-    startTime?: Time;
-    isPublished: boolean;
-    subject: string;
-    endTime?: Time;
-    sectionType?: SectionType;
-    isStopped: boolean;
-    name: string;
-    createdAt: Time;
-    createdBy: Principal;
-    testType: TestType;
-    updatedAt?: Time;
-    totalQuestions: bigint;
-    durationMinutes: bigint;
-    chapters: Array<string>;
-    markingScheme: {
-        incorrectPenalty: number;
-        correctMarks: number;
-    };
-    questions: Array<bigint>;
-}
-export interface SuggestionsResponse {
-    suggestions: Array<Suggestion>;
-    count: bigint;
-}
 export interface _CaffeineStorageRefillInformation {
     proposed_top_up_amount?: bigint;
-}
-export interface Suggestion {
-    id: bigint;
-    feedback: string;
-    author: string;
-    timestamp: Time;
-}
-export interface LeaderboardEntry {
-    rank: bigint;
-    submittedAt: Time;
-    score: number;
-    userProfile: UserProfile;
-}
-export interface GalleryQuestionPreview {
-    id: bigint;
-    previewImage?: ExternalBlob;
-    subject: string;
-    difficulty: string;
-    hasImage: boolean;
-    snippet: string;
-    questionText: string;
-    chapter: string;
-    options: Array<Option>;
 }
 export interface _CaffeineStorageCreateCertificateResult {
     method: string;
     blob_hash: string;
-}
-export interface Comment {
-    id: bigint;
-    userId: Principal;
-    text: string;
-    timestamp: Time;
-    questionId: bigint;
-}
-export interface TestAttempt {
-    userId: Principal;
-    answers: Array<bigint>;
-    submittedAt: Time;
-    score: number;
-    timeTaken: bigint;
-    testId: bigint;
-}
-export interface SanitizedQuestion {
-    id: bigint;
-    subject: string;
-    difficulty: string;
-    questionText: string;
-    image?: ExternalBlob;
-    chapter: string;
-    options: Array<Option>;
-}
-export interface OverallLeaderboardEntry {
-    rank: bigint;
-    totalAttempts: bigint;
-    userProfile: UserProfile;
-    averageScore: number;
-}
-export interface Option {
-    text: string;
-    image?: ExternalBlob;
-}
-export interface Question {
-    id: bigint;
-    subject: string;
-    difficulty: string;
-    explanation?: string;
-    createdAt: Time;
-    createdBy: Principal;
-    correctAnswer: bigint;
-    questionText: string;
-    updatedAt?: Time;
-    classLevel: TestType;
-    image?: ExternalBlob;
-    chapter: string;
-    options: Array<Option>;
-}
-export interface ActiveSession {
-    startTime: Time;
-    userId: Principal;
-    lastActivity: Time;
-    testId: bigint;
 }
 export interface UserProfile {
     id: Principal;
@@ -218,28 +114,13 @@ export interface UserProfile {
     testAttempts: Array<TestAttempt>;
     blockTimestamp?: Time;
 }
-export interface SystemMetrics {
-    totalTests: bigint;
-    totalQuestions: bigint;
-    timestamp: Time;
-    totalUsers: bigint;
-    activeSessionCount: bigint;
-}
-export enum SectionType {
-    full = "full",
-    physicsChemistry = "physicsChemistry",
-    mathematics = "mathematics"
-}
-export enum TestStatus {
-    scheduled = "scheduled",
-    live = "live",
-    ended = "ended",
-    finished = "finished"
-}
-export enum TestType {
-    class11 = "class11",
-    class12 = "class12",
-    completeSyllabus = "completeSyllabus"
+export interface TestAttempt {
+    userId: Principal;
+    answers: Array<bigint>;
+    submittedAt: Time;
+    score: number;
+    timeTaken: bigint;
+    testId: bigint;
 }
 export enum UserRole {
     admin = "admin",
@@ -254,126 +135,15 @@ export interface backendInterface {
     _caffeineStorageRefillCashier(refillInformation: _CaffeineStorageRefillInformation | null): Promise<_CaffeineStorageRefillResult>;
     _caffeineStorageUpdateGatewayPrincipals(): Promise<void>;
     _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
-    addComment(questionId: bigint, text: string): Promise<void>;
-    addOptionImageToQuestion(questionId: bigint, optionIndex: bigint, image: ExternalBlob): Promise<void>;
-    addQuestion(subject: string, chapter: string, difficulty: string, questionText: string, options: Array<Option>, correctAnswer: bigint, explanation: string | null, image: ExternalBlob | null, classLevel: TestType): Promise<bigint>;
-    addQuestionsWithClassLevel(questions: Array<Question>, classLevel: TestType): Promise<Array<bigint>>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
-    blockUser(userId: Principal): Promise<void>;
-    cleanupStaleSessions(maxIdleMinutes: bigint): Promise<bigint>;
-    createTestConfig(name: string, subject: string, chapters: Array<string>, testType: TestType, durationMinutes: bigint, totalQuestions: bigint, markingScheme: {
-        incorrectPenalty: number;
-        correctMarks: number;
-    }, questions: Array<bigint>, startTime: Time | null, endTime: Time | null, sectionType: SectionType | null): Promise<bigint>;
-    deleteComment(commentId: bigint): Promise<void>;
-    deleteSuggestion(suggestionId: bigint): Promise<void>;
-    deleteTestConfig(testId: bigint): Promise<void>;
-    filterQuestions(subject: string | null, chapter: string | null, difficulty: string | null, classLevel: TestType | null): Promise<Array<GalleryQuestionPreview>>;
-    getActiveNonBlockedUsers(): Promise<Array<UserProfile>>;
-    getActivePublishedTestConfigs(): Promise<Array<TestConfig>>;
-    getActiveSessionCount(): Promise<bigint>;
-    getActiveSessions(): Promise<Array<ActiveSession>>;
-    getAllComments(): Promise<Array<Comment>>;
-    getAllQuestionsWithImages(): Promise<Array<Question>>;
-    getAllSuggestions(): Promise<SuggestionsResponse>;
-    getAllTestConfigs(): Promise<Array<TestConfig>>;
-    getAllTestsWithStatus(): Promise<Array<[TestConfig, TestStatus]>>;
-    getAllUniqueChaptersForSubject(subject: string): Promise<Array<string>>;
-    getAllUsersWithTestAttempts(): Promise<Array<[UserProfile, Array<TestAttempt>]>>;
-    getBlockedUsers(): Promise<Array<UserProfile>>;
-    getCallerRole(): Promise<UserRole>;
-    getCallerUserProfile(): Promise<UserProfile>;
+    deleteQuestion(questionId: bigint): Promise<void>;
+    getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
-    getComment(commentId: bigint): Promise<Comment>;
-    getComments(questionId: bigint): Promise<Array<Comment>>;
-    getFilteredQuestionsCount(subject: string | null, chapter: string | null, difficulty: string | null, classLevel: TestType | null): Promise<bigint>;
-    getLeaderboardByTest(testId: bigint): Promise<Array<LeaderboardEntry>>;
-    getOrderedTestConfigs(): Promise<Array<TestConfig>>;
-    getOverallLeaderboard(): Promise<Array<OverallLeaderboardEntry>>;
-    getPublishedTests(): Promise<{
-        publishedTests: Array<TestConfig>;
-        liveCount: bigint;
-        scheduledCount: bigint;
-    }>;
-    getQuestion(questionId: bigint): Promise<Question>;
-    getQuestionByTestConfig(testConfigId: bigint): Promise<{
-        questions: Array<SanitizedQuestion>;
-        testConfig: TestConfig;
-    }>;
-    getQuestionCount(): Promise<bigint>;
-    getQuestionPreview(questionId: bigint): Promise<GalleryQuestionPreview>;
-    getQuestionWithAnswersByTestConfig(testConfigId: bigint): Promise<{
-        questions: Array<Question>;
-        testConfig: TestConfig;
-    }>;
-    getQuestionsByChapter(subject: string, chapter: string): Promise<Array<Question>>;
-    getQuestionsByIds(questionIds: Array<bigint>): Promise<Array<GalleryQuestionPreview>>;
-    getQuestionsBySubject(subject: string): Promise<Array<Question>>;
-    getQuestionsForChapter(subject: string, chapter: string): Promise<Array<Question>>;
-    getQuestionsForGallery(subject: string | null, chapter: string | null, difficulty: string | null, classLevel: TestType | null, page: bigint, pageSize: bigint): Promise<{
-        totalCount: bigint;
-        questions: Array<GalleryQuestionPreview>;
-        pageCount: bigint;
-    }>;
-    getStoppedTestConfigs(): Promise<Array<TestConfig>>;
-    getSystemMetrics(): Promise<SystemMetrics>;
-    getTestConfig(testId: bigint): Promise<TestConfig>;
-    getTestConfigCount(): Promise<bigint>;
-    getTestConfigOrder(): Promise<Array<bigint>>;
-    getTestConfigsInOrder(): Promise<Array<TestConfig>>;
-    getTestConfigsWithStatus(): Promise<Array<[TestConfig, TestStatus]>>;
-    getTestStatus(testId: bigint): Promise<TestStatus>;
-    getUserCount(): Promise<bigint>;
-    getUserProfile(user: Principal): Promise<UserProfile>;
+    getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
-    isCallerBlocked(): Promise<boolean>;
-    isUserBlocked(userId: Principal): Promise<boolean>;
-    publishTestConfig(testId: bigint): Promise<void>;
-    removeOptionImageFromQuestion(questionId: bigint, optionIndex: bigint): Promise<void>;
-    reorderTestConfigs(newOrder: Array<bigint>): Promise<void>;
-    saveCallerUserProfile(profile: UserProfile): Promise<void>;
-    scheduleTestConfig(testId: bigint, startTime: Time, endTime: Time): Promise<void>;
-    setQuestionClassLevel(questionId: bigint, classLevel: TestType): Promise<void>;
-    setYouTubeVerified(): Promise<void>;
-    setYouTubeVerifiedForUser(userId: Principal): Promise<void>;
-    startTestSession(testId: bigint): Promise<void>;
-    stopTestConfig(testId: bigint): Promise<void>;
-    submitSuggestion(author: string, feedback: string): Promise<void>;
-    submitTestAttempt(testId: bigint, answers: Array<bigint>): Promise<number>;
-    unblockUser(userId: Principal): Promise<void>;
-    unpublishTestConfig(testId: bigint): Promise<void>;
-    updateCallerMobileNumber(mobileNumber: string): Promise<void>;
-    updateQuestion(questionId: bigint, questionData: {
-        subject: string;
-        difficulty: string;
-        explanation?: string;
-        correctAnswer: bigint;
-        questionText: string;
-        classLevel: TestType;
-        image?: ExternalBlob;
-        chapter: string;
-        options: Array<Option>;
-    }): Promise<void>;
-    updateSessionActivity(testId: bigint): Promise<void>;
-    updateTestConfig(testId: bigint, configData: {
-        startTime?: Time;
-        subject: string;
-        endTime?: Time;
-        sectionType?: SectionType;
-        name: string;
-        testType: TestType;
-        totalQuestions: bigint;
-        durationMinutes: bigint;
-        chapters: Array<string>;
-        markingScheme: {
-            incorrectPenalty: number;
-            correctMarks: number;
-        };
-        questions: Array<bigint>;
-    }): Promise<void>;
-    uploadQuestionImage(image: ExternalBlob): Promise<ExternalBlob>;
+    saveCallerUserProfile(profile: UserProfile): Promise<UserProfile>;
 }
-import type { ExternalBlob as _ExternalBlob, GalleryQuestionPreview as _GalleryQuestionPreview, LeaderboardEntry as _LeaderboardEntry, Option as _Option, OverallLeaderboardEntry as _OverallLeaderboardEntry, Question as _Question, SanitizedQuestion as _SanitizedQuestion, SectionType as _SectionType, TestAttempt as _TestAttempt, TestConfig as _TestConfig, TestStatus as _TestStatus, TestType as _TestType, Time as _Time, UserProfile as _UserProfile, UserRole as _UserRole, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
+import type { TestAttempt as _TestAttempt, Time as _Time, UserProfile as _UserProfile, UserRole as _UserRole, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async _caffeineStorageBlobIsLive(arg0: Uint8Array): Promise<boolean> {
@@ -474,777 +244,74 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async addComment(arg0: bigint, arg1: string): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.addComment(arg0, arg1);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.addComment(arg0, arg1);
-            return result;
-        }
-    }
-    async addOptionImageToQuestion(arg0: bigint, arg1: bigint, arg2: ExternalBlob): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.addOptionImageToQuestion(arg0, arg1, await to_candid_ExternalBlob_n8(this._uploadFile, this._downloadFile, arg2));
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.addOptionImageToQuestion(arg0, arg1, await to_candid_ExternalBlob_n8(this._uploadFile, this._downloadFile, arg2));
-            return result;
-        }
-    }
-    async addQuestion(arg0: string, arg1: string, arg2: string, arg3: string, arg4: Array<Option>, arg5: bigint, arg6: string | null, arg7: ExternalBlob | null, arg8: TestType): Promise<bigint> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.addQuestion(arg0, arg1, arg2, arg3, await to_candid_vec_n9(this._uploadFile, this._downloadFile, arg4), arg5, to_candid_opt_n12(this._uploadFile, this._downloadFile, arg6), await to_candid_opt_n13(this._uploadFile, this._downloadFile, arg7), to_candid_TestType_n14(this._uploadFile, this._downloadFile, arg8));
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.addQuestion(arg0, arg1, arg2, arg3, await to_candid_vec_n9(this._uploadFile, this._downloadFile, arg4), arg5, to_candid_opt_n12(this._uploadFile, this._downloadFile, arg6), await to_candid_opt_n13(this._uploadFile, this._downloadFile, arg7), to_candid_TestType_n14(this._uploadFile, this._downloadFile, arg8));
-            return result;
-        }
-    }
-    async addQuestionsWithClassLevel(arg0: Array<Question>, arg1: TestType): Promise<Array<bigint>> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.addQuestionsWithClassLevel(await to_candid_vec_n16(this._uploadFile, this._downloadFile, arg0), to_candid_TestType_n14(this._uploadFile, this._downloadFile, arg1));
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.addQuestionsWithClassLevel(await to_candid_vec_n16(this._uploadFile, this._downloadFile, arg0), to_candid_TestType_n14(this._uploadFile, this._downloadFile, arg1));
-            return result;
-        }
-    }
     async assignCallerUserRole(arg0: Principal, arg1: UserRole): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.assignCallerUserRole(arg0, to_candid_UserRole_n19(this._uploadFile, this._downloadFile, arg1));
+                const result = await this.actor.assignCallerUserRole(arg0, to_candid_UserRole_n8(this._uploadFile, this._downloadFile, arg1));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.assignCallerUserRole(arg0, to_candid_UserRole_n19(this._uploadFile, this._downloadFile, arg1));
+            const result = await this.actor.assignCallerUserRole(arg0, to_candid_UserRole_n8(this._uploadFile, this._downloadFile, arg1));
             return result;
         }
     }
-    async blockUser(arg0: Principal): Promise<void> {
+    async deleteQuestion(arg0: bigint): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.blockUser(arg0);
+                const result = await this.actor.deleteQuestion(arg0);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.blockUser(arg0);
+            const result = await this.actor.deleteQuestion(arg0);
             return result;
         }
     }
-    async cleanupStaleSessions(arg0: bigint): Promise<bigint> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.cleanupStaleSessions(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.cleanupStaleSessions(arg0);
-            return result;
-        }
-    }
-    async createTestConfig(arg0: string, arg1: string, arg2: Array<string>, arg3: TestType, arg4: bigint, arg5: bigint, arg6: {
-        incorrectPenalty: number;
-        correctMarks: number;
-    }, arg7: Array<bigint>, arg8: Time | null, arg9: Time | null, arg10: SectionType | null): Promise<bigint> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.createTestConfig(arg0, arg1, arg2, to_candid_TestType_n14(this._uploadFile, this._downloadFile, arg3), arg4, arg5, arg6, arg7, to_candid_opt_n21(this._uploadFile, this._downloadFile, arg8), to_candid_opt_n21(this._uploadFile, this._downloadFile, arg9), to_candid_opt_n22(this._uploadFile, this._downloadFile, arg10));
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.createTestConfig(arg0, arg1, arg2, to_candid_TestType_n14(this._uploadFile, this._downloadFile, arg3), arg4, arg5, arg6, arg7, to_candid_opt_n21(this._uploadFile, this._downloadFile, arg8), to_candid_opt_n21(this._uploadFile, this._downloadFile, arg9), to_candid_opt_n22(this._uploadFile, this._downloadFile, arg10));
-            return result;
-        }
-    }
-    async deleteComment(arg0: bigint): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.deleteComment(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.deleteComment(arg0);
-            return result;
-        }
-    }
-    async deleteSuggestion(arg0: bigint): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.deleteSuggestion(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.deleteSuggestion(arg0);
-            return result;
-        }
-    }
-    async deleteTestConfig(arg0: bigint): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.deleteTestConfig(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.deleteTestConfig(arg0);
-            return result;
-        }
-    }
-    async filterQuestions(arg0: string | null, arg1: string | null, arg2: string | null, arg3: TestType | null): Promise<Array<GalleryQuestionPreview>> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.filterQuestions(to_candid_opt_n12(this._uploadFile, this._downloadFile, arg0), to_candid_opt_n12(this._uploadFile, this._downloadFile, arg1), to_candid_opt_n12(this._uploadFile, this._downloadFile, arg2), to_candid_opt_n25(this._uploadFile, this._downloadFile, arg3));
-                return from_candid_vec_n26(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.filterQuestions(to_candid_opt_n12(this._uploadFile, this._downloadFile, arg0), to_candid_opt_n12(this._uploadFile, this._downloadFile, arg1), to_candid_opt_n12(this._uploadFile, this._downloadFile, arg2), to_candid_opt_n25(this._uploadFile, this._downloadFile, arg3));
-            return from_candid_vec_n26(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getActiveNonBlockedUsers(): Promise<Array<UserProfile>> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getActiveNonBlockedUsers();
-                return from_candid_vec_n34(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getActiveNonBlockedUsers();
-            return from_candid_vec_n34(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getActivePublishedTestConfigs(): Promise<Array<TestConfig>> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getActivePublishedTestConfigs();
-                return from_candid_vec_n38(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getActivePublishedTestConfigs();
-            return from_candid_vec_n38(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getActiveSessionCount(): Promise<bigint> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getActiveSessionCount();
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getActiveSessionCount();
-            return result;
-        }
-    }
-    async getActiveSessions(): Promise<Array<ActiveSession>> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getActiveSessions();
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getActiveSessions();
-            return result;
-        }
-    }
-    async getAllComments(): Promise<Array<Comment>> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getAllComments();
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getAllComments();
-            return result;
-        }
-    }
-    async getAllQuestionsWithImages(): Promise<Array<Question>> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getAllQuestionsWithImages();
-                return from_candid_vec_n46(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getAllQuestionsWithImages();
-            return from_candid_vec_n46(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getAllSuggestions(): Promise<SuggestionsResponse> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getAllSuggestions();
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getAllSuggestions();
-            return result;
-        }
-    }
-    async getAllTestConfigs(): Promise<Array<TestConfig>> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getAllTestConfigs();
-                return from_candid_vec_n38(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getAllTestConfigs();
-            return from_candid_vec_n38(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getAllTestsWithStatus(): Promise<Array<[TestConfig, TestStatus]>> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getAllTestsWithStatus();
-                return from_candid_vec_n50(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getAllTestsWithStatus();
-            return from_candid_vec_n50(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getAllUniqueChaptersForSubject(arg0: string): Promise<Array<string>> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getAllUniqueChaptersForSubject(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getAllUniqueChaptersForSubject(arg0);
-            return result;
-        }
-    }
-    async getAllUsersWithTestAttempts(): Promise<Array<[UserProfile, Array<TestAttempt>]>> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getAllUsersWithTestAttempts();
-                return from_candid_vec_n54(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getAllUsersWithTestAttempts();
-            return from_candid_vec_n54(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getBlockedUsers(): Promise<Array<UserProfile>> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getBlockedUsers();
-                return from_candid_vec_n34(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getBlockedUsers();
-            return from_candid_vec_n34(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getCallerRole(): Promise<UserRole> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getCallerRole();
-                return from_candid_UserRole_n56(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getCallerRole();
-            return from_candid_UserRole_n56(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getCallerUserProfile(): Promise<UserProfile> {
+    async getCallerUserProfile(): Promise<UserProfile | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getCallerUserProfile();
-                return from_candid_UserProfile_n35(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n10(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCallerUserProfile();
-            return from_candid_UserProfile_n35(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n10(this._uploadFile, this._downloadFile, result);
         }
     }
     async getCallerUserRole(): Promise<UserRole> {
         if (this.processError) {
             try {
                 const result = await this.actor.getCallerUserRole();
-                return from_candid_UserRole_n56(this._uploadFile, this._downloadFile, result);
+                return from_candid_UserRole_n14(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCallerUserRole();
-            return from_candid_UserRole_n56(this._uploadFile, this._downloadFile, result);
+            return from_candid_UserRole_n14(this._uploadFile, this._downloadFile, result);
         }
     }
-    async getComment(arg0: bigint): Promise<Comment> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getComment(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getComment(arg0);
-            return result;
-        }
-    }
-    async getComments(arg0: bigint): Promise<Array<Comment>> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getComments(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getComments(arg0);
-            return result;
-        }
-    }
-    async getFilteredQuestionsCount(arg0: string | null, arg1: string | null, arg2: string | null, arg3: TestType | null): Promise<bigint> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getFilteredQuestionsCount(to_candid_opt_n12(this._uploadFile, this._downloadFile, arg0), to_candid_opt_n12(this._uploadFile, this._downloadFile, arg1), to_candid_opt_n12(this._uploadFile, this._downloadFile, arg2), to_candid_opt_n25(this._uploadFile, this._downloadFile, arg3));
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getFilteredQuestionsCount(to_candid_opt_n12(this._uploadFile, this._downloadFile, arg0), to_candid_opt_n12(this._uploadFile, this._downloadFile, arg1), to_candid_opt_n12(this._uploadFile, this._downloadFile, arg2), to_candid_opt_n25(this._uploadFile, this._downloadFile, arg3));
-            return result;
-        }
-    }
-    async getLeaderboardByTest(arg0: bigint): Promise<Array<LeaderboardEntry>> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getLeaderboardByTest(arg0);
-                return from_candid_vec_n58(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getLeaderboardByTest(arg0);
-            return from_candid_vec_n58(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getOrderedTestConfigs(): Promise<Array<TestConfig>> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getOrderedTestConfigs();
-                return from_candid_vec_n38(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getOrderedTestConfigs();
-            return from_candid_vec_n38(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getOverallLeaderboard(): Promise<Array<OverallLeaderboardEntry>> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getOverallLeaderboard();
-                return from_candid_vec_n61(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getOverallLeaderboard();
-            return from_candid_vec_n61(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getPublishedTests(): Promise<{
-        publishedTests: Array<TestConfig>;
-        liveCount: bigint;
-        scheduledCount: bigint;
-    }> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getPublishedTests();
-                return from_candid_record_n64(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getPublishedTests();
-            return from_candid_record_n64(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getQuestion(arg0: bigint): Promise<Question> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getQuestion(arg0);
-                return from_candid_Question_n47(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getQuestion(arg0);
-            return from_candid_Question_n47(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getQuestionByTestConfig(arg0: bigint): Promise<{
-        questions: Array<SanitizedQuestion>;
-        testConfig: TestConfig;
-    }> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getQuestionByTestConfig(arg0);
-                return from_candid_record_n65(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getQuestionByTestConfig(arg0);
-            return from_candid_record_n65(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getQuestionCount(): Promise<bigint> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getQuestionCount();
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getQuestionCount();
-            return result;
-        }
-    }
-    async getQuestionPreview(arg0: bigint): Promise<GalleryQuestionPreview> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getQuestionPreview(arg0);
-                return from_candid_GalleryQuestionPreview_n27(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getQuestionPreview(arg0);
-            return from_candid_GalleryQuestionPreview_n27(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getQuestionWithAnswersByTestConfig(arg0: bigint): Promise<{
-        questions: Array<Question>;
-        testConfig: TestConfig;
-    }> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getQuestionWithAnswersByTestConfig(arg0);
-                return from_candid_record_n69(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getQuestionWithAnswersByTestConfig(arg0);
-            return from_candid_record_n69(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getQuestionsByChapter(arg0: string, arg1: string): Promise<Array<Question>> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getQuestionsByChapter(arg0, arg1);
-                return from_candid_vec_n46(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getQuestionsByChapter(arg0, arg1);
-            return from_candid_vec_n46(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getQuestionsByIds(arg0: Array<bigint>): Promise<Array<GalleryQuestionPreview>> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getQuestionsByIds(arg0);
-                return from_candid_vec_n26(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getQuestionsByIds(arg0);
-            return from_candid_vec_n26(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getQuestionsBySubject(arg0: string): Promise<Array<Question>> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getQuestionsBySubject(arg0);
-                return from_candid_vec_n46(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getQuestionsBySubject(arg0);
-            return from_candid_vec_n46(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getQuestionsForChapter(arg0: string, arg1: string): Promise<Array<Question>> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getQuestionsForChapter(arg0, arg1);
-                return from_candid_vec_n46(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getQuestionsForChapter(arg0, arg1);
-            return from_candid_vec_n46(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getQuestionsForGallery(arg0: string | null, arg1: string | null, arg2: string | null, arg3: TestType | null, arg4: bigint, arg5: bigint): Promise<{
-        totalCount: bigint;
-        questions: Array<GalleryQuestionPreview>;
-        pageCount: bigint;
-    }> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getQuestionsForGallery(to_candid_opt_n12(this._uploadFile, this._downloadFile, arg0), to_candid_opt_n12(this._uploadFile, this._downloadFile, arg1), to_candid_opt_n12(this._uploadFile, this._downloadFile, arg2), to_candid_opt_n25(this._uploadFile, this._downloadFile, arg3), arg4, arg5);
-                return from_candid_record_n70(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getQuestionsForGallery(to_candid_opt_n12(this._uploadFile, this._downloadFile, arg0), to_candid_opt_n12(this._uploadFile, this._downloadFile, arg1), to_candid_opt_n12(this._uploadFile, this._downloadFile, arg2), to_candid_opt_n25(this._uploadFile, this._downloadFile, arg3), arg4, arg5);
-            return from_candid_record_n70(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getStoppedTestConfigs(): Promise<Array<TestConfig>> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getStoppedTestConfigs();
-                return from_candid_vec_n38(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getStoppedTestConfigs();
-            return from_candid_vec_n38(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getSystemMetrics(): Promise<SystemMetrics> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getSystemMetrics();
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getSystemMetrics();
-            return result;
-        }
-    }
-    async getTestConfig(arg0: bigint): Promise<TestConfig> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getTestConfig(arg0);
-                return from_candid_TestConfig_n39(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getTestConfig(arg0);
-            return from_candid_TestConfig_n39(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getTestConfigCount(): Promise<bigint> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getTestConfigCount();
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getTestConfigCount();
-            return result;
-        }
-    }
-    async getTestConfigOrder(): Promise<Array<bigint>> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getTestConfigOrder();
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getTestConfigOrder();
-            return result;
-        }
-    }
-    async getTestConfigsInOrder(): Promise<Array<TestConfig>> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getTestConfigsInOrder();
-                return from_candid_vec_n38(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getTestConfigsInOrder();
-            return from_candid_vec_n38(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getTestConfigsWithStatus(): Promise<Array<[TestConfig, TestStatus]>> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getTestConfigsWithStatus();
-                return from_candid_vec_n50(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getTestConfigsWithStatus();
-            return from_candid_vec_n50(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getTestStatus(arg0: bigint): Promise<TestStatus> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getTestStatus(arg0);
-                return from_candid_TestStatus_n52(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getTestStatus(arg0);
-            return from_candid_TestStatus_n52(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getUserCount(): Promise<bigint> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getUserCount();
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getUserCount();
-            return result;
-        }
-    }
-    async getUserProfile(arg0: Principal): Promise<UserProfile> {
+    async getUserProfile(arg0: Principal): Promise<UserProfile | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getUserProfile(arg0);
-                return from_candid_UserProfile_n35(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n10(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getUserProfile(arg0);
-            return from_candid_UserProfile_n35(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n10(this._uploadFile, this._downloadFile, result);
         }
     }
     async isCallerAdmin(): Promise<boolean> {
@@ -1261,378 +328,34 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async isCallerBlocked(): Promise<boolean> {
+    async saveCallerUserProfile(arg0: UserProfile): Promise<UserProfile> {
         if (this.processError) {
             try {
-                const result = await this.actor.isCallerBlocked();
-                return result;
+                const result = await this.actor.saveCallerUserProfile(to_candid_UserProfile_n16(this._uploadFile, this._downloadFile, arg0));
+                return from_candid_UserProfile_n11(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.isCallerBlocked();
-            return result;
-        }
-    }
-    async isUserBlocked(arg0: Principal): Promise<boolean> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.isUserBlocked(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.isUserBlocked(arg0);
-            return result;
-        }
-    }
-    async publishTestConfig(arg0: bigint): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.publishTestConfig(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.publishTestConfig(arg0);
-            return result;
-        }
-    }
-    async removeOptionImageFromQuestion(arg0: bigint, arg1: bigint): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.removeOptionImageFromQuestion(arg0, arg1);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.removeOptionImageFromQuestion(arg0, arg1);
-            return result;
-        }
-    }
-    async reorderTestConfigs(arg0: Array<bigint>): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.reorderTestConfigs(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.reorderTestConfigs(arg0);
-            return result;
-        }
-    }
-    async saveCallerUserProfile(arg0: UserProfile): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.saveCallerUserProfile(to_candid_UserProfile_n71(this._uploadFile, this._downloadFile, arg0));
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.saveCallerUserProfile(to_candid_UserProfile_n71(this._uploadFile, this._downloadFile, arg0));
-            return result;
-        }
-    }
-    async scheduleTestConfig(arg0: bigint, arg1: Time, arg2: Time): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.scheduleTestConfig(arg0, arg1, arg2);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.scheduleTestConfig(arg0, arg1, arg2);
-            return result;
-        }
-    }
-    async setQuestionClassLevel(arg0: bigint, arg1: TestType): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.setQuestionClassLevel(arg0, to_candid_TestType_n14(this._uploadFile, this._downloadFile, arg1));
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.setQuestionClassLevel(arg0, to_candid_TestType_n14(this._uploadFile, this._downloadFile, arg1));
-            return result;
-        }
-    }
-    async setYouTubeVerified(): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.setYouTubeVerified();
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.setYouTubeVerified();
-            return result;
-        }
-    }
-    async setYouTubeVerifiedForUser(arg0: Principal): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.setYouTubeVerifiedForUser(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.setYouTubeVerifiedForUser(arg0);
-            return result;
-        }
-    }
-    async startTestSession(arg0: bigint): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.startTestSession(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.startTestSession(arg0);
-            return result;
-        }
-    }
-    async stopTestConfig(arg0: bigint): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.stopTestConfig(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.stopTestConfig(arg0);
-            return result;
-        }
-    }
-    async submitSuggestion(arg0: string, arg1: string): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.submitSuggestion(arg0, arg1);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.submitSuggestion(arg0, arg1);
-            return result;
-        }
-    }
-    async submitTestAttempt(arg0: bigint, arg1: Array<bigint>): Promise<number> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.submitTestAttempt(arg0, arg1);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.submitTestAttempt(arg0, arg1);
-            return result;
-        }
-    }
-    async unblockUser(arg0: Principal): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.unblockUser(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.unblockUser(arg0);
-            return result;
-        }
-    }
-    async unpublishTestConfig(arg0: bigint): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.unpublishTestConfig(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.unpublishTestConfig(arg0);
-            return result;
-        }
-    }
-    async updateCallerMobileNumber(arg0: string): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.updateCallerMobileNumber(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.updateCallerMobileNumber(arg0);
-            return result;
-        }
-    }
-    async updateQuestion(arg0: bigint, arg1: {
-        subject: string;
-        difficulty: string;
-        explanation?: string;
-        correctAnswer: bigint;
-        questionText: string;
-        classLevel: TestType;
-        image?: ExternalBlob;
-        chapter: string;
-        options: Array<Option>;
-    }): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.updateQuestion(arg0, await to_candid_record_n73(this._uploadFile, this._downloadFile, arg1));
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.updateQuestion(arg0, await to_candid_record_n73(this._uploadFile, this._downloadFile, arg1));
-            return result;
-        }
-    }
-    async updateSessionActivity(arg0: bigint): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.updateSessionActivity(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.updateSessionActivity(arg0);
-            return result;
-        }
-    }
-    async updateTestConfig(arg0: bigint, arg1: {
-        startTime?: Time;
-        subject: string;
-        endTime?: Time;
-        sectionType?: SectionType;
-        name: string;
-        testType: TestType;
-        totalQuestions: bigint;
-        durationMinutes: bigint;
-        chapters: Array<string>;
-        markingScheme: {
-            incorrectPenalty: number;
-            correctMarks: number;
-        };
-        questions: Array<bigint>;
-    }): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.updateTestConfig(arg0, to_candid_record_n74(this._uploadFile, this._downloadFile, arg1));
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.updateTestConfig(arg0, to_candid_record_n74(this._uploadFile, this._downloadFile, arg1));
-            return result;
-        }
-    }
-    async uploadQuestionImage(arg0: ExternalBlob): Promise<ExternalBlob> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.uploadQuestionImage(await to_candid_ExternalBlob_n8(this._uploadFile, this._downloadFile, arg0));
-                return from_candid_ExternalBlob_n30(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.uploadQuestionImage(await to_candid_ExternalBlob_n8(this._uploadFile, this._downloadFile, arg0));
-            return from_candid_ExternalBlob_n30(this._uploadFile, this._downloadFile, result);
+            const result = await this.actor.saveCallerUserProfile(to_candid_UserProfile_n16(this._uploadFile, this._downloadFile, arg0));
+            return from_candid_UserProfile_n11(this._uploadFile, this._downloadFile, result);
         }
     }
 }
-async function from_candid_ExternalBlob_n30(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ExternalBlob): Promise<ExternalBlob> {
-    return await _downloadFile(value);
+function from_candid_UserProfile_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserProfile): UserProfile {
+    return from_candid_record_n12(_uploadFile, _downloadFile, value);
 }
-async function from_candid_GalleryQuestionPreview_n27(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _GalleryQuestionPreview): Promise<GalleryQuestionPreview> {
-    return await from_candid_record_n28(_uploadFile, _downloadFile, value);
-}
-function from_candid_LeaderboardEntry_n59(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _LeaderboardEntry): LeaderboardEntry {
-    return from_candid_record_n60(_uploadFile, _downloadFile, value);
-}
-async function from_candid_Option_n32(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Option): Promise<Option> {
-    return await from_candid_record_n33(_uploadFile, _downloadFile, value);
-}
-function from_candid_OverallLeaderboardEntry_n62(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _OverallLeaderboardEntry): OverallLeaderboardEntry {
-    return from_candid_record_n63(_uploadFile, _downloadFile, value);
-}
-async function from_candid_Question_n47(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Question): Promise<Question> {
-    return await from_candid_record_n48(_uploadFile, _downloadFile, value);
-}
-async function from_candid_SanitizedQuestion_n67(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _SanitizedQuestion): Promise<SanitizedQuestion> {
-    return await from_candid_record_n68(_uploadFile, _downloadFile, value);
-}
-function from_candid_SectionType_n42(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _SectionType): SectionType {
-    return from_candid_variant_n43(_uploadFile, _downloadFile, value);
-}
-function from_candid_TestConfig_n39(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _TestConfig): TestConfig {
-    return from_candid_record_n40(_uploadFile, _downloadFile, value);
-}
-function from_candid_TestStatus_n52(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _TestStatus): TestStatus {
-    return from_candid_variant_n53(_uploadFile, _downloadFile, value);
-}
-function from_candid_TestType_n44(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _TestType): TestType {
-    return from_candid_variant_n45(_uploadFile, _downloadFile, value);
-}
-function from_candid_UserProfile_n35(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserProfile): UserProfile {
-    return from_candid_record_n36(_uploadFile, _downloadFile, value);
-}
-function from_candid_UserRole_n56(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
-    return from_candid_variant_n57(_uploadFile, _downloadFile, value);
+function from_candid_UserRole_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
+    return from_candid_variant_n15(_uploadFile, _downloadFile, value);
 }
 function from_candid__CaffeineStorageRefillResult_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: __CaffeineStorageRefillResult): _CaffeineStorageRefillResult {
     return from_candid_record_n5(_uploadFile, _downloadFile, value);
 }
-async function from_candid_opt_n29(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_ExternalBlob]): Promise<ExternalBlob | null> {
-    return value.length === 0 ? null : await from_candid_ExternalBlob_n30(_uploadFile, _downloadFile, value[0]);
+function from_candid_opt_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
+    return value.length === 0 ? null : from_candid_UserProfile_n11(_uploadFile, _downloadFile, value[0]);
 }
-function from_candid_opt_n37(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Time]): Time | null {
-    return value.length === 0 ? null : value[0];
-}
-function from_candid_opt_n41(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_SectionType]): SectionType | null {
-    return value.length === 0 ? null : from_candid_SectionType_n42(_uploadFile, _downloadFile, value[0]);
-}
-function from_candid_opt_n49(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [string]): string | null {
+function from_candid_opt_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Time]): Time | null {
     return value.length === 0 ? null : value[0];
 }
 function from_candid_opt_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [boolean]): boolean | null {
@@ -1641,52 +364,7 @@ function from_candid_opt_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Ar
 function from_candid_opt_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [bigint]): bigint | null {
     return value.length === 0 ? null : value[0];
 }
-async function from_candid_record_n28(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    id: bigint;
-    previewImage: [] | [_ExternalBlob];
-    subject: string;
-    difficulty: string;
-    hasImage: boolean;
-    snippet: string;
-    questionText: string;
-    chapter: string;
-    options: Array<_Option>;
-}): Promise<{
-    id: bigint;
-    previewImage?: ExternalBlob;
-    subject: string;
-    difficulty: string;
-    hasImage: boolean;
-    snippet: string;
-    questionText: string;
-    chapter: string;
-    options: Array<Option>;
-}> {
-    return {
-        id: value.id,
-        previewImage: record_opt_to_undefined(await from_candid_opt_n29(_uploadFile, _downloadFile, value.previewImage)),
-        subject: value.subject,
-        difficulty: value.difficulty,
-        hasImage: value.hasImage,
-        snippet: value.snippet,
-        questionText: value.questionText,
-        chapter: value.chapter,
-        options: await from_candid_vec_n31(_uploadFile, _downloadFile, value.options)
-    };
-}
-async function from_candid_record_n33(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    text: string;
-    image: [] | [_ExternalBlob];
-}): Promise<{
-    text: string;
-    image?: ExternalBlob;
-}> {
-    return {
-        text: value.text,
-        image: record_opt_to_undefined(await from_candid_opt_n29(_uploadFile, _downloadFile, value.image))
-    };
-}
-function from_candid_record_n36(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: Principal;
     isBlocked: boolean;
     createdAt: _Time;
@@ -1715,122 +393,14 @@ function from_candid_record_n36(_uploadFile: (file: ExternalBlob) => Promise<Uin
         id: value.id,
         isBlocked: value.isBlocked,
         createdAt: value.createdAt,
-        youtubeVerificationTimestamp: record_opt_to_undefined(from_candid_opt_n37(_uploadFile, _downloadFile, value.youtubeVerificationTimestamp)),
+        youtubeVerificationTimestamp: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.youtubeVerificationTimestamp)),
         fullName: value.fullName,
         mobileNumber: value.mobileNumber,
         email: value.email,
         isYouTubeVerified: value.isYouTubeVerified,
         lastLogin: value.lastLogin,
         testAttempts: value.testAttempts,
-        blockTimestamp: record_opt_to_undefined(from_candid_opt_n37(_uploadFile, _downloadFile, value.blockTimestamp))
-    };
-}
-function from_candid_record_n40(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    id: bigint;
-    startTime: [] | [_Time];
-    isPublished: boolean;
-    subject: string;
-    endTime: [] | [_Time];
-    sectionType: [] | [_SectionType];
-    isStopped: boolean;
-    name: string;
-    createdAt: _Time;
-    createdBy: Principal;
-    testType: _TestType;
-    updatedAt: [] | [_Time];
-    totalQuestions: bigint;
-    durationMinutes: bigint;
-    chapters: Array<string>;
-    markingScheme: {
-        incorrectPenalty: number;
-        correctMarks: number;
-    };
-    questions: Array<bigint>;
-}): {
-    id: bigint;
-    startTime?: Time;
-    isPublished: boolean;
-    subject: string;
-    endTime?: Time;
-    sectionType?: SectionType;
-    isStopped: boolean;
-    name: string;
-    createdAt: Time;
-    createdBy: Principal;
-    testType: TestType;
-    updatedAt?: Time;
-    totalQuestions: bigint;
-    durationMinutes: bigint;
-    chapters: Array<string>;
-    markingScheme: {
-        incorrectPenalty: number;
-        correctMarks: number;
-    };
-    questions: Array<bigint>;
-} {
-    return {
-        id: value.id,
-        startTime: record_opt_to_undefined(from_candid_opt_n37(_uploadFile, _downloadFile, value.startTime)),
-        isPublished: value.isPublished,
-        subject: value.subject,
-        endTime: record_opt_to_undefined(from_candid_opt_n37(_uploadFile, _downloadFile, value.endTime)),
-        sectionType: record_opt_to_undefined(from_candid_opt_n41(_uploadFile, _downloadFile, value.sectionType)),
-        isStopped: value.isStopped,
-        name: value.name,
-        createdAt: value.createdAt,
-        createdBy: value.createdBy,
-        testType: from_candid_TestType_n44(_uploadFile, _downloadFile, value.testType),
-        updatedAt: record_opt_to_undefined(from_candid_opt_n37(_uploadFile, _downloadFile, value.updatedAt)),
-        totalQuestions: value.totalQuestions,
-        durationMinutes: value.durationMinutes,
-        chapters: value.chapters,
-        markingScheme: value.markingScheme,
-        questions: value.questions
-    };
-}
-async function from_candid_record_n48(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    id: bigint;
-    subject: string;
-    difficulty: string;
-    explanation: [] | [string];
-    createdAt: _Time;
-    createdBy: Principal;
-    correctAnswer: bigint;
-    questionText: string;
-    updatedAt: [] | [_Time];
-    classLevel: _TestType;
-    image: [] | [_ExternalBlob];
-    chapter: string;
-    options: Array<_Option>;
-}): Promise<{
-    id: bigint;
-    subject: string;
-    difficulty: string;
-    explanation?: string;
-    createdAt: Time;
-    createdBy: Principal;
-    correctAnswer: bigint;
-    questionText: string;
-    updatedAt?: Time;
-    classLevel: TestType;
-    image?: ExternalBlob;
-    chapter: string;
-    options: Array<Option>;
-}> {
-    return {
-        id: value.id,
-        subject: value.subject,
-        difficulty: value.difficulty,
-        explanation: record_opt_to_undefined(from_candid_opt_n49(_uploadFile, _downloadFile, value.explanation)),
-        createdAt: value.createdAt,
-        createdBy: value.createdBy,
-        correctAnswer: value.correctAnswer,
-        questionText: value.questionText,
-        updatedAt: record_opt_to_undefined(from_candid_opt_n37(_uploadFile, _downloadFile, value.updatedAt)),
-        classLevel: from_candid_TestType_n44(_uploadFile, _downloadFile, value.classLevel),
-        image: record_opt_to_undefined(await from_candid_opt_n29(_uploadFile, _downloadFile, value.image)),
-        chapter: value.chapter,
-        options: await from_candid_vec_n31(_uploadFile, _downloadFile, value.options)
+        blockTimestamp: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.blockTimestamp))
     };
 }
 function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
@@ -1845,165 +415,7 @@ function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint
         topped_up_amount: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.topped_up_amount))
     };
 }
-function from_candid_record_n60(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    rank: bigint;
-    submittedAt: _Time;
-    score: number;
-    userProfile: _UserProfile;
-}): {
-    rank: bigint;
-    submittedAt: Time;
-    score: number;
-    userProfile: UserProfile;
-} {
-    return {
-        rank: value.rank,
-        submittedAt: value.submittedAt,
-        score: value.score,
-        userProfile: from_candid_UserProfile_n35(_uploadFile, _downloadFile, value.userProfile)
-    };
-}
-function from_candid_record_n63(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    rank: bigint;
-    totalAttempts: bigint;
-    userProfile: _UserProfile;
-    averageScore: number;
-}): {
-    rank: bigint;
-    totalAttempts: bigint;
-    userProfile: UserProfile;
-    averageScore: number;
-} {
-    return {
-        rank: value.rank,
-        totalAttempts: value.totalAttempts,
-        userProfile: from_candid_UserProfile_n35(_uploadFile, _downloadFile, value.userProfile),
-        averageScore: value.averageScore
-    };
-}
-function from_candid_record_n64(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    publishedTests: Array<_TestConfig>;
-    liveCount: bigint;
-    scheduledCount: bigint;
-}): {
-    publishedTests: Array<TestConfig>;
-    liveCount: bigint;
-    scheduledCount: bigint;
-} {
-    return {
-        publishedTests: from_candid_vec_n38(_uploadFile, _downloadFile, value.publishedTests),
-        liveCount: value.liveCount,
-        scheduledCount: value.scheduledCount
-    };
-}
-async function from_candid_record_n65(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    questions: Array<_SanitizedQuestion>;
-    testConfig: _TestConfig;
-}): Promise<{
-    questions: Array<SanitizedQuestion>;
-    testConfig: TestConfig;
-}> {
-    return {
-        questions: await from_candid_vec_n66(_uploadFile, _downloadFile, value.questions),
-        testConfig: from_candid_TestConfig_n39(_uploadFile, _downloadFile, value.testConfig)
-    };
-}
-async function from_candid_record_n68(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    id: bigint;
-    subject: string;
-    difficulty: string;
-    questionText: string;
-    image: [] | [_ExternalBlob];
-    chapter: string;
-    options: Array<_Option>;
-}): Promise<{
-    id: bigint;
-    subject: string;
-    difficulty: string;
-    questionText: string;
-    image?: ExternalBlob;
-    chapter: string;
-    options: Array<Option>;
-}> {
-    return {
-        id: value.id,
-        subject: value.subject,
-        difficulty: value.difficulty,
-        questionText: value.questionText,
-        image: record_opt_to_undefined(await from_candid_opt_n29(_uploadFile, _downloadFile, value.image)),
-        chapter: value.chapter,
-        options: await from_candid_vec_n31(_uploadFile, _downloadFile, value.options)
-    };
-}
-async function from_candid_record_n69(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    questions: Array<_Question>;
-    testConfig: _TestConfig;
-}): Promise<{
-    questions: Array<Question>;
-    testConfig: TestConfig;
-}> {
-    return {
-        questions: await from_candid_vec_n46(_uploadFile, _downloadFile, value.questions),
-        testConfig: from_candid_TestConfig_n39(_uploadFile, _downloadFile, value.testConfig)
-    };
-}
-async function from_candid_record_n70(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    totalCount: bigint;
-    questions: Array<_GalleryQuestionPreview>;
-    pageCount: bigint;
-}): Promise<{
-    totalCount: bigint;
-    questions: Array<GalleryQuestionPreview>;
-    pageCount: bigint;
-}> {
-    return {
-        totalCount: value.totalCount,
-        questions: await from_candid_vec_n26(_uploadFile, _downloadFile, value.questions),
-        pageCount: value.pageCount
-    };
-}
-function from_candid_tuple_n51(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [_TestConfig, _TestStatus]): [TestConfig, TestStatus] {
-    return [
-        from_candid_TestConfig_n39(_uploadFile, _downloadFile, value[0]),
-        from_candid_TestStatus_n52(_uploadFile, _downloadFile, value[1])
-    ];
-}
-function from_candid_tuple_n55(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [_UserProfile, Array<_TestAttempt>]): [UserProfile, Array<TestAttempt>] {
-    return [
-        from_candid_UserProfile_n35(_uploadFile, _downloadFile, value[0]),
-        value[1]
-    ];
-}
-function from_candid_variant_n43(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    full: null;
-} | {
-    physicsChemistry: null;
-} | {
-    mathematics: null;
-}): SectionType {
-    return "full" in value ? SectionType.full : "physicsChemistry" in value ? SectionType.physicsChemistry : "mathematics" in value ? SectionType.mathematics : value;
-}
-function from_candid_variant_n45(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    class11: null;
-} | {
-    class12: null;
-} | {
-    completeSyllabus: null;
-}): TestType {
-    return "class11" in value ? TestType.class11 : "class12" in value ? TestType.class12 : "completeSyllabus" in value ? TestType.completeSyllabus : value;
-}
-function from_candid_variant_n53(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    scheduled: null;
-} | {
-    live: null;
-} | {
-    ended: null;
-} | {
-    finished: null;
-}): TestStatus {
-    return "scheduled" in value ? TestStatus.scheduled : "live" in value ? TestStatus.live : "ended" in value ? TestStatus.ended : "finished" in value ? TestStatus.finished : value;
-}
-function from_candid_variant_n57(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_variant_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     admin: null;
 } | {
     user: null;
@@ -2012,56 +424,11 @@ function from_candid_variant_n57(_uploadFile: (file: ExternalBlob) => Promise<Ui
 }): UserRole {
     return "admin" in value ? UserRole.admin : "user" in value ? UserRole.user : "guest" in value ? UserRole.guest : value;
 }
-async function from_candid_vec_n26(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_GalleryQuestionPreview>): Promise<Array<GalleryQuestionPreview>> {
-    return await Promise.all(value.map(async (x)=>await from_candid_GalleryQuestionPreview_n27(_uploadFile, _downloadFile, x)));
+function to_candid_UserProfile_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserProfile): _UserProfile {
+    return to_candid_record_n17(_uploadFile, _downloadFile, value);
 }
-async function from_candid_vec_n31(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Option>): Promise<Array<Option>> {
-    return await Promise.all(value.map(async (x)=>await from_candid_Option_n32(_uploadFile, _downloadFile, x)));
-}
-function from_candid_vec_n34(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_UserProfile>): Array<UserProfile> {
-    return value.map((x)=>from_candid_UserProfile_n35(_uploadFile, _downloadFile, x));
-}
-function from_candid_vec_n38(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_TestConfig>): Array<TestConfig> {
-    return value.map((x)=>from_candid_TestConfig_n39(_uploadFile, _downloadFile, x));
-}
-async function from_candid_vec_n46(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Question>): Promise<Array<Question>> {
-    return await Promise.all(value.map(async (x)=>await from_candid_Question_n47(_uploadFile, _downloadFile, x)));
-}
-function from_candid_vec_n50(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<[_TestConfig, _TestStatus]>): Array<[TestConfig, TestStatus]> {
-    return value.map((x)=>from_candid_tuple_n51(_uploadFile, _downloadFile, x));
-}
-function from_candid_vec_n54(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<[_UserProfile, Array<_TestAttempt>]>): Array<[UserProfile, Array<TestAttempt>]> {
-    return value.map((x)=>from_candid_tuple_n55(_uploadFile, _downloadFile, x));
-}
-function from_candid_vec_n58(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_LeaderboardEntry>): Array<LeaderboardEntry> {
-    return value.map((x)=>from_candid_LeaderboardEntry_n59(_uploadFile, _downloadFile, x));
-}
-function from_candid_vec_n61(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_OverallLeaderboardEntry>): Array<OverallLeaderboardEntry> {
-    return value.map((x)=>from_candid_OverallLeaderboardEntry_n62(_uploadFile, _downloadFile, x));
-}
-async function from_candid_vec_n66(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_SanitizedQuestion>): Promise<Array<SanitizedQuestion>> {
-    return await Promise.all(value.map(async (x)=>await from_candid_SanitizedQuestion_n67(_uploadFile, _downloadFile, x)));
-}
-async function to_candid_ExternalBlob_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: ExternalBlob): Promise<_ExternalBlob> {
-    return await _uploadFile(value);
-}
-async function to_candid_Option_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Option): Promise<_Option> {
-    return await to_candid_record_n11(_uploadFile, _downloadFile, value);
-}
-async function to_candid_Question_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Question): Promise<_Question> {
-    return await to_candid_record_n18(_uploadFile, _downloadFile, value);
-}
-function to_candid_SectionType_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: SectionType): _SectionType {
-    return to_candid_variant_n24(_uploadFile, _downloadFile, value);
-}
-function to_candid_TestType_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: TestType): _TestType {
-    return to_candid_variant_n15(_uploadFile, _downloadFile, value);
-}
-function to_candid_UserProfile_n71(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserProfile): _UserProfile {
-    return to_candid_record_n72(_uploadFile, _downloadFile, value);
-}
-function to_candid_UserRole_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): _UserRole {
-    return to_candid_variant_n20(_uploadFile, _downloadFile, value);
+function to_candid_UserRole_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): _UserRole {
+    return to_candid_variant_n9(_uploadFile, _downloadFile, value);
 }
 function to_candid__CaffeineStorageRefillInformation_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _CaffeineStorageRefillInformation): __CaffeineStorageRefillInformation {
     return to_candid_record_n3(_uploadFile, _downloadFile, value);
@@ -2069,88 +436,7 @@ function to_candid__CaffeineStorageRefillInformation_n2(_uploadFile: (file: Exte
 function to_candid_opt_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _CaffeineStorageRefillInformation | null): [] | [__CaffeineStorageRefillInformation] {
     return value === null ? candid_none() : candid_some(to_candid__CaffeineStorageRefillInformation_n2(_uploadFile, _downloadFile, value));
 }
-function to_candid_opt_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: string | null): [] | [string] {
-    return value === null ? candid_none() : candid_some(value);
-}
-async function to_candid_opt_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: ExternalBlob | null): Promise<[] | [_ExternalBlob]> {
-    return value === null ? candid_none() : candid_some(await to_candid_ExternalBlob_n8(_uploadFile, _downloadFile, value));
-}
-function to_candid_opt_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Time | null): [] | [_Time] {
-    return value === null ? candid_none() : candid_some(value);
-}
-function to_candid_opt_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: SectionType | null): [] | [_SectionType] {
-    return value === null ? candid_none() : candid_some(to_candid_SectionType_n23(_uploadFile, _downloadFile, value));
-}
-function to_candid_opt_n25(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: TestType | null): [] | [_TestType] {
-    return value === null ? candid_none() : candid_some(to_candid_TestType_n14(_uploadFile, _downloadFile, value));
-}
-async function to_candid_record_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    text: string;
-    image?: ExternalBlob;
-}): Promise<{
-    text: string;
-    image: [] | [_ExternalBlob];
-}> {
-    return {
-        text: value.text,
-        image: value.image ? candid_some(await to_candid_ExternalBlob_n8(_uploadFile, _downloadFile, value.image)) : candid_none()
-    };
-}
-async function to_candid_record_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    id: bigint;
-    subject: string;
-    difficulty: string;
-    explanation?: string;
-    createdAt: Time;
-    createdBy: Principal;
-    correctAnswer: bigint;
-    questionText: string;
-    updatedAt?: Time;
-    classLevel: TestType;
-    image?: ExternalBlob;
-    chapter: string;
-    options: Array<Option>;
-}): Promise<{
-    id: bigint;
-    subject: string;
-    difficulty: string;
-    explanation: [] | [string];
-    createdAt: _Time;
-    createdBy: Principal;
-    correctAnswer: bigint;
-    questionText: string;
-    updatedAt: [] | [_Time];
-    classLevel: _TestType;
-    image: [] | [_ExternalBlob];
-    chapter: string;
-    options: Array<_Option>;
-}> {
-    return {
-        id: value.id,
-        subject: value.subject,
-        difficulty: value.difficulty,
-        explanation: value.explanation ? candid_some(value.explanation) : candid_none(),
-        createdAt: value.createdAt,
-        createdBy: value.createdBy,
-        correctAnswer: value.correctAnswer,
-        questionText: value.questionText,
-        updatedAt: value.updatedAt ? candid_some(value.updatedAt) : candid_none(),
-        classLevel: to_candid_TestType_n14(_uploadFile, _downloadFile, value.classLevel),
-        image: value.image ? candid_some(await to_candid_ExternalBlob_n8(_uploadFile, _downloadFile, value.image)) : candid_none(),
-        chapter: value.chapter,
-        options: await to_candid_vec_n9(_uploadFile, _downloadFile, value.options)
-    };
-}
-function to_candid_record_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    proposed_top_up_amount?: bigint;
-}): {
-    proposed_top_up_amount: [] | [bigint];
-} {
-    return {
-        proposed_top_up_amount: value.proposed_top_up_amount ? candid_some(value.proposed_top_up_amount) : candid_none()
-    };
-}
-function to_candid_record_n72(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function to_candid_record_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: Principal;
     isBlocked: boolean;
     createdAt: Time;
@@ -2189,100 +475,16 @@ function to_candid_record_n72(_uploadFile: (file: ExternalBlob) => Promise<Uint8
         blockTimestamp: value.blockTimestamp ? candid_some(value.blockTimestamp) : candid_none()
     };
 }
-async function to_candid_record_n73(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    subject: string;
-    difficulty: string;
-    explanation?: string;
-    correctAnswer: bigint;
-    questionText: string;
-    classLevel: TestType;
-    image?: ExternalBlob;
-    chapter: string;
-    options: Array<Option>;
-}): Promise<{
-    subject: string;
-    difficulty: string;
-    explanation: [] | [string];
-    correctAnswer: bigint;
-    questionText: string;
-    classLevel: _TestType;
-    image: [] | [_ExternalBlob];
-    chapter: string;
-    options: Array<_Option>;
-}> {
-    return {
-        subject: value.subject,
-        difficulty: value.difficulty,
-        explanation: value.explanation ? candid_some(value.explanation) : candid_none(),
-        correctAnswer: value.correctAnswer,
-        questionText: value.questionText,
-        classLevel: to_candid_TestType_n14(_uploadFile, _downloadFile, value.classLevel),
-        image: value.image ? candid_some(await to_candid_ExternalBlob_n8(_uploadFile, _downloadFile, value.image)) : candid_none(),
-        chapter: value.chapter,
-        options: await to_candid_vec_n9(_uploadFile, _downloadFile, value.options)
-    };
-}
-function to_candid_record_n74(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    startTime?: Time;
-    subject: string;
-    endTime?: Time;
-    sectionType?: SectionType;
-    name: string;
-    testType: TestType;
-    totalQuestions: bigint;
-    durationMinutes: bigint;
-    chapters: Array<string>;
-    markingScheme: {
-        incorrectPenalty: number;
-        correctMarks: number;
-    };
-    questions: Array<bigint>;
+function to_candid_record_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    proposed_top_up_amount?: bigint;
 }): {
-    startTime: [] | [_Time];
-    subject: string;
-    endTime: [] | [_Time];
-    sectionType: [] | [_SectionType];
-    name: string;
-    testType: _TestType;
-    totalQuestions: bigint;
-    durationMinutes: bigint;
-    chapters: Array<string>;
-    markingScheme: {
-        incorrectPenalty: number;
-        correctMarks: number;
-    };
-    questions: Array<bigint>;
+    proposed_top_up_amount: [] | [bigint];
 } {
     return {
-        startTime: value.startTime ? candid_some(value.startTime) : candid_none(),
-        subject: value.subject,
-        endTime: value.endTime ? candid_some(value.endTime) : candid_none(),
-        sectionType: value.sectionType ? candid_some(to_candid_SectionType_n23(_uploadFile, _downloadFile, value.sectionType)) : candid_none(),
-        name: value.name,
-        testType: to_candid_TestType_n14(_uploadFile, _downloadFile, value.testType),
-        totalQuestions: value.totalQuestions,
-        durationMinutes: value.durationMinutes,
-        chapters: value.chapters,
-        markingScheme: value.markingScheme,
-        questions: value.questions
+        proposed_top_up_amount: value.proposed_top_up_amount ? candid_some(value.proposed_top_up_amount) : candid_none()
     };
 }
-function to_candid_variant_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: TestType): {
-    class11: null;
-} | {
-    class12: null;
-} | {
-    completeSyllabus: null;
-} {
-    return value == TestType.class11 ? {
-        class11: null
-    } : value == TestType.class12 ? {
-        class12: null
-    } : value == TestType.completeSyllabus ? {
-        completeSyllabus: null
-    } : value;
-}
-function to_candid_variant_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): {
+function to_candid_variant_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): {
     admin: null;
 } | {
     user: null;
@@ -2296,27 +498,6 @@ function to_candid_variant_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint
     } : value == UserRole.guest ? {
         guest: null
     } : value;
-}
-function to_candid_variant_n24(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: SectionType): {
-    full: null;
-} | {
-    physicsChemistry: null;
-} | {
-    mathematics: null;
-} {
-    return value == SectionType.full ? {
-        full: null
-    } : value == SectionType.physicsChemistry ? {
-        physicsChemistry: null
-    } : value == SectionType.mathematics ? {
-        mathematics: null
-    } : value;
-}
-async function to_candid_vec_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<Question>): Promise<Array<_Question>> {
-    return await Promise.all(value.map(async (x)=>await to_candid_Question_n17(_uploadFile, _downloadFile, x)));
-}
-async function to_candid_vec_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<Option>): Promise<Array<_Option>> {
-    return await Promise.all(value.map(async (x)=>await to_candid_Option_n10(_uploadFile, _downloadFile, x)));
 }
 export interface CreateActorOptions {
     agent?: Agent;
