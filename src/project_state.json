@@ -1,18 +1,36 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "New project",
-  "architectural_notes": [],
+  "summary": "Website deployment in progress; current focus is fixing a loading overlay (ViewActivationOverlay) that blocks homepage interaction and makes only the About button seem clickable.",
+  "architectural_notes": [
+    "Investigate ViewActivationOverlay/loading overlay lifecycle to ensure it is dismissed reliably and never intercepts pointer events after load."
+  ],
   "known_issues": [
-    "Profile popup/overlay issue traced to missing backend profile-save method; when missing, popup cannot close and leaves a grey/dim overlay."
+    "Loading overlay (ViewActivationOverlay) can remain active briefly, creating a transparent dark layer that blocks clicks and makes the homepage seem unresponsive (e.g., only About button works)."
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-wire-the-frontend-react-query-hooks-to-the-real-backend-profile-methods-update-usegetcalleruserprofile-and-usesavecalleruserprofile-in-frontend-src-hooks-usequeries-ts-to-call-the-backend-methods-keep-the-existing-query-key-currentuserprofile-and-ensure-the-query-is-invalidated-refetched-on-successful-save-so-the-profile-setup-dialog-is-dismissed-by-app-tsx-logic",
-      "title": "Wire the frontend React Query hooks to the real backend profile methods: update `useGetCallerUserProfile` and `useSaveCallerUserProfile` in `frontend/src/hooks/useQueries.ts` to call the backend methods, keep the existing query key `['currentUserProfile']`, and ensure the query is invalidated/refetched on successful save so the Profile Setup dialog is dismissed by `App.tsx` logic.",
+      "id": "feature-prevent-viewactivationoverlay-from-appearing-or-remaining-active-on-non-target-views-so-the-landing-page-is-always-visible-and-clickable-the-overlay-must-only-render-when-the-currently-rendered-view-matches-the-activation-target-e-g-only-show-for-dashboard-activation-while-the-dashboard-view-is-actually-mounted",
+      "title": "Prevent ViewActivationOverlay from appearing (or remaining active) on non-target views so the Landing page is always visible and clickable. The overlay must only render when the currently-rendered view matches the activation target (e.g., only show for dashboard activation while the Dashboard view is actually mounted).",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-harden-the-view-activation-lifecycle-so-activation-always-finishes-reliably-ensure-activation-is-cancelled-on-any-navigation-away-from-the-target-view-and-finished-when-the-target-view-has-rendered-and-its-initial-critical-loading-has-settled-including-dashboard-loading-states",
+      "title": "Harden the view-activation lifecycle so activation always finishes reliably: ensure activation is cancelled on any navigation away from the target view and finished when the target view has rendered and its initial critical loading has settled (including Dashboard loading states).",
       "reqIds": [
         "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-defensive-safeguards-against-stuck-activation-state-ensure-any-safety-timeout-cleanup-cannot-leave-a-stale-activation-that-blocks-interaction-and-add-minimal-instrumentation-console-debug-logs-guarded-by-a-development-check-to-trace-start-finish-cancel-transitions-during-development-builds",
+      "title": "Add defensive safeguards against “stuck” activation state: ensure any safety timeout cleanup cannot leave a stale activation that blocks interaction, and add minimal instrumentation (console debug logs guarded by a development check) to trace start/finish/cancel transitions during development builds.",
+      "reqIds": [
+        "REQ-3"
       ],
       "version": 1
     }
@@ -20,14 +38,12 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Implement Motoko backend support for caller user profiles by adding public shared methods `getCallerUserProfile()` and `saveCallerUserProfile(...)` in `backend/main.mo`, storing profiles in the existing `userProfiles` map keyed by caller Principal, and returning the created/updated profile.",
-      "reqIds": [
-        "REQ-1"
-      ],
-      "status": "pending"
+      "summary": "Fix ViewActivationOverlay/loading overlay so it closes instantly and does not block clicks on the homepage",
+      "reqIds": [],
+      "status": "in_progress"
     }
   ],
-  "projectName": "Fix Profile Setup overlay by implementing backend user profile methods and wiring React Query hooks",
+  "projectName": "Fix stuck ViewActivationOverlay that blocks Landing page interaction",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

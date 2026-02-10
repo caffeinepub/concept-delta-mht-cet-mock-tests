@@ -1,89 +1,115 @@
-import { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from 'react';
-import { AppView } from '../App';
+import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
 
-interface ViewActivationState {
-  isActivating: boolean;
-  targetView: AppView | null;
-  startTime: number | null;
-}
+type ActivationTarget = 'dashboard' | null;
 
 interface ViewActivationContextType {
-  activationState: ViewActivationState;
-  startActivation: (view: AppView) => void;
-  finishActivation: () => void;
-  isActivatingView: (view: AppView) => boolean;
+  isActivating: boolean;
+  targetView: ActivationTarget;
+  startActivation: (target: 'dashboard', currentView?: string) => void;
+  finishActivation: (currentView?: string) => void;
+  cancelActivation: (currentView?: string) => void;
+  isActivatingView: (view: string) => boolean;
 }
 
 const ViewActivationContext = createContext<ViewActivationContextType | undefined>(undefined);
 
-const ACTIVATION_TIMEOUT = 10000; // 10 seconds safety timeout
+const SAFETY_TIMEOUT_MS = 5000;
 
-export function ViewActivationProvider({ children }: { children: ReactNode }) {
-  const [activationState, setActivationState] = useState<ViewActivationState>({
-    isActivating: false,
-    targetView: null,
-    startTime: null,
-  });
+// Dev-only logging helper
+const logActivation = (event: string, target: ActivationTarget, currentView?: string) => {
+  if (import.meta.env.DEV) {
+    console.log(`[ViewActivation] ${event}:`, { target, currentView, timestamp: new Date().toISOString() });
+  }
+};
 
+export function ViewActivationProvider({ children }: { children: React.ReactNode }) {
+  const [isActivating, setIsActivating] = useState(false);
+  const [targetView, setTargetView] = useState<ActivationTarget>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const currentViewRef = useRef<AppView | null>(null);
+  const currentTargetRef = useRef<ActivationTarget>(null);
 
-  const startActivation = useCallback((view: AppView) => {
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
+  }, []);
+
+  const startActivation = useCallback((target: 'dashboard', currentView?: string) => {
+    logActivation('START', target, currentView);
+
     // Clear any existing timeout
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
 
-    currentViewRef.current = view;
-    setActivationState({
-      isActivating: true,
-      targetView: view,
-      startTime: Date.now(),
-    });
+    // Set activation state
+    setIsActivating(true);
+    setTargetView(target);
+    currentTargetRef.current = target;
 
-    // Set new safety timeout
+    // Safety timeout - auto-finish after 5 seconds
     timeoutRef.current = setTimeout(() => {
-      console.warn(`View activation timeout for ${view} - forcing finish`);
-      setActivationState({
-        isActivating: false,
-        targetView: null,
-        startTime: null,
-      });
-      currentViewRef.current = null;
-    }, ACTIVATION_TIMEOUT);
+      // Only finish if we're still activating the same target
+      if (currentTargetRef.current === target) {
+        logActivation('TIMEOUT', target, currentView);
+        setIsActivating(false);
+        setTargetView(null);
+        currentTargetRef.current = null;
+      }
+      timeoutRef.current = null;
+    }, SAFETY_TIMEOUT_MS);
   }, []);
 
-  const finishActivation = useCallback(() => {
+  const finishActivation = useCallback((currentView?: string) => {
+    logActivation('FINISH', currentTargetRef.current, currentView);
+
     // Clear timeout
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
 
-    currentViewRef.current = null;
-    setActivationState({
-      isActivating: false,
-      targetView: null,
-      startTime: null,
-    });
+    // Clear activation state
+    setIsActivating(false);
+    setTargetView(null);
+    currentTargetRef.current = null;
   }, []);
 
-  const isActivatingView = useCallback((view: AppView) => {
-    return activationState.isActivating && activationState.targetView === view;
-  }, [activationState]);
+  const cancelActivation = useCallback((currentView?: string) => {
+    logActivation('CANCEL', currentTargetRef.current, currentView);
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
+    // Clear timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
+    // Immediately clear activation state
+    setIsActivating(false);
+    setTargetView(null);
+    currentTargetRef.current = null;
   }, []);
+
+  const isActivatingView = useCallback((view: string) => {
+    return isActivating && targetView === view;
+  }, [isActivating, targetView]);
 
   return (
-    <ViewActivationContext.Provider value={{ activationState, startActivation, finishActivation, isActivatingView }}>
+    <ViewActivationContext.Provider
+      value={{
+        isActivating,
+        targetView,
+        startActivation,
+        finishActivation,
+        cancelActivation,
+        isActivatingView,
+      }}
+    >
       {children}
     </ViewActivationContext.Provider>
   );

@@ -2,11 +2,34 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-wire-the-frontend-react-query-hooks-to-the-real-backend-profile-methods-update-usegetcalleruserprofile-and-usesavecalleruserprofile-in-frontend-src-hooks-usequeries-ts-to-call-the-backend-methods-keep-the-existing-query-key-currentuserprofile-and-ensure-the-query-is-invalidated-refetched-on-successful-save-so-the-profile-setup-dialog-is-dismissed-by-app-tsx-logic",
-      "featureTitle": "Wire the frontend React Query hooks to the real backend profile methods: update `useGetCallerUserProfile` and `useSaveCallerUserProfile` in `frontend/src/hooks/useQueries.ts` to call the backend methods, keep the existing query key `['currentUserProfile']`, and ensure the query is invalidated/refetched on successful save so the Profile Setup dialog is dismissed by `App.tsx` logic.",
+      "featureId": "feature-prevent-viewactivationoverlay-from-appearing-or-remaining-active-on-non-target-views-so-the-landing-page-is-always-visible-and-clickable-the-overlay-must-only-render-when-the-currently-rendered-view-matches-the-activation-target-e-g-only-show-for-dashboard-activation-while-the-dashboard-view-is-actually-mounted",
+      "featureTitle": "Prevent ViewActivationOverlay from appearing (or remaining active) on non-target views so the Landing page is always visible and clickable. The overlay must only render when the currently-rendered view matches the activation target (e.g., only show for dashboard activation while the Dashboard view is actually mounted).",
       "files": [
-        "frontend/src/components/ProfileSetup.tsx",
-        "frontend/src/hooks/useQueries.ts"
+        "frontend/src/App.tsx",
+        "frontend/src/components/ViewActivationOverlay.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "camera@1.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-harden-the-view-activation-lifecycle-so-activation-always-finishes-reliably-ensure-activation-is-cancelled-on-any-navigation-away-from-the-target-view-and-finished-when-the-target-view-has-rendered-and-its-initial-critical-loading-has-settled-including-dashboard-loading-states",
+      "featureTitle": "Harden the view-activation lifecycle so activation always finishes reliably: ensure activation is cancelled on any navigation away from the target view and finished when the target view has rendered and its initial critical loading has settled (including Dashboard loading states).",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/Header.tsx",
+        "frontend/src/pages/Dashboard.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -20,6 +43,28 @@
       ],
       "testIds": [
         "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-defensive-safeguards-against-stuck-activation-state-ensure-any-safety-timeout-cleanup-cannot-leave-a-stale-activation-that-blocks-interaction-and-add-minimal-instrumentation-console-debug-logs-guarded-by-a-development-check-to-trace-start-finish-cancel-transitions-during-development-builds",
+      "featureTitle": "Add defensive safeguards against “stuck” activation state: ensure any safety timeout cleanup cannot leave a stale activation that blocks interaction, and add minimal instrumentation (console debug logs guarded by a development check) to trace start/finish/cancel transitions during development builds.",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/contexts/ViewActivationContext.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "camera@1.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
       ],
       "confidence": "high"
     }

@@ -1,27 +1,78 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Wire profile React Query hooks to backend and ensure Profile Setup overlay dismisses after save",
+  "title": "Fix ViewActivationOverlay blocking Landing/About by scoping activation to active view and hardening activation lifecycle",
   "requirements": [
     {
-      "id": "REQ-2",
-      "summary": "Update React Query profile hooks to call backend get/save methods, keep query key ['currentUserProfile'], invalidate/refetch on save, and show an English error toast on save failure.",
+      "id": "REQ-1",
+      "summary": "Render ViewActivationOverlay only when the currently mounted view matches the activation target, so Landing/About remain fully interactive.",
       "acceptanceCriteria": [
-        "`useGetCallerUserProfile` calls the backend `getCallerUserProfile()` and returns a `UserProfile` when present, otherwise `null`.",
-        "`useSaveCallerUserProfile` calls backend `saveCallerUserProfile(...)` and no longer throws the hardcoded \"Profile save method not yet implemented\" error.",
-        "After a successful profile save, `['currentUserProfile']` is invalidated and refetched, and `App.tsx` stops rendering `<ProfileSetup />` (overlay disappears and the app becomes usable).",
-        "On save failure, the Profile Setup dialog remains open and a user-visible error toast is shown (in English)."
+        "When the app is on Landing or About, there is no fullscreen overlay element intercepting clicks (no dark/transparent layer blocking interaction).",
+        "If an activation for Dashboard is started but the user navigates to Landing/About (or logs out) before it finishes, the overlay immediately disappears and does not reappear.",
+        "Reproducing the reported state (“only About button works”) is no longer possible; all Landing CTAs/links/buttons remain clickable."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/src/components/ViewActivationOverlay.tsx",
           "operation": "modify",
-          "description": "Replace the stubbed profile query/mutation with real actor calls to `getCallerUserProfile()` and `saveCallerUserProfile(...)` while keeping the existing query key `['currentUserProfile']`. Add minimal type/shape bridging so the hook returns `UserProfile | null` to the app (including mapping backend `id` to the local string form if needed). Ensure `enabled` correctly waits for the actor (avoid modal flash), and on successful save invalidate/refetch `['currentUserProfile']` so `App.tsx` no longer shows `<ProfileSetup />`. Add `onError` handling that shows an English error toast (using the existing Sonner toast system) without closing the dialog. Verify the component's usage instructions before implementing."
+          "description": "Accept the currently rendered view (e.g., `currentView`) as an input and render the fullscreen overlay only when `isActivating` is true AND `targetView` exactly matches the currently mounted view; otherwise render `null` to avoid intercepting clicks on Landing/About."
         },
         {
-          "path": "frontend/src/components/ProfileSetup.tsx",
+          "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Align the submit flow with the updated `useSaveCallerUserProfile` behavior: ensure the mutation is called with the expected input shape and that save failures keep the dialog open while showing a user-visible English toast (avoid duplicating toasts if the hook now toasts on error). Keep existing English validation messages and success toast behavior."
+          "description": "Wire the current view into ViewActivationOverlay (pass `currentView`), ensuring the overlay cannot appear on Landing/About when the activation target is Dashboard."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Ensure activation reliably finishes or cancels by coupling activation to view mount/unmount and Dashboard initial loading/query settlement.",
+      "acceptanceCriteria": [
+        "Starting navigation to Dashboard triggers activation, and the overlay is removed automatically once Dashboard has rendered and initial queries have settled (success or error).",
+        "Navigating away from Dashboard (to Landing/About) always cancels activation immediately (no lingering activation state).",
+        "Logging out always cancels activation and leaves the app in a fully interactive Landing view."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Harden lifecycle by cancelling activation whenever `currentView` changes away from the `targetView` (not just away from dashboard), so any in-flight activation is immediately cancelled on navigation or view restoration changes."
+        },
+        {
+          "path": "frontend/src/pages/Dashboard.tsx",
+          "operation": "modify",
+          "description": "Add defensive activation lifecycle hooks: ensure activation is finished when Dashboard has mounted and its critical initial loading has settled (including error states), and add cleanup on unmount to cancel any ongoing Dashboard activation if the user navigates away mid-load."
+        },
+        {
+          "path": "frontend/src/components/Header.tsx",
+          "operation": "modify",
+          "description": "Ensure logout path always cancels activation before navigating to Landing (keep existing behavior, but align with the updated activation rules so Dashboard activation cannot linger after logout)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Add safeguards against stuck activation: robust safety-timeout cleanup and dev-only debug instrumentation for activation transitions without production noise.",
+      "acceptanceCriteria": [
+        "Activation state cannot remain true beyond the configured safety timeout for the same target; after timeout, overlay is not rendered and clicks work normally.",
+        "In development mode, start/finish/cancel/timeout events are logged with the current target and current view to aid debugging; no noisy logs in production build.",
+        "No React warnings/errors are introduced (e.g., due to timers updating state after unmount)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/contexts/ViewActivationContext.tsx",
+          "operation": "modify",
+          "description": "Strengthen safety-timeout behavior: keep timeout cleanup fully consistent across start/finish/cancel, ensure timeouts cannot resurrect stale activation for a previous target, and ensure timers are always cleared to prevent state updates after unmount."
+        },
+        {
+          "path": "frontend/src/contexts/ViewActivationContext.tsx",
+          "operation": "modify",
+          "description": "Add minimal dev-only console instrumentation (guarded by a development check such as `import.meta.env.DEV`) for activation start/finish/cancel/timeout transitions; include current target and (via parameters passed from callers) the current view when available, while ensuring no logs in production builds."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "When calling activation start/finish/cancel from navigation/logout flows, pass along (or otherwise provide) the current view context needed for dev-only logs, and verify cancellation/finish calls are idempotent to avoid warnings during rapid navigation."
         }
       ]
     }

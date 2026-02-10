@@ -1,49 +1,70 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-09T14:13:23.794Z",
+  "generatedAt": "2026-02-10T19:24:36.389Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
-    "implemented": 1,
+    "total": 3,
+    "implemented": 3,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Implement Motoko backend support for caller user profiles by adding public shared methods `getCallerUserProfile()` and `saveCallerUserProfile(...)` in `backend/main.mo`, storing profiles in the existing `userProfiles` map keyed by caller Principal, and returning the created/updated profile.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
+        "summary": "Prevent ViewActivationOverlay from appearing (or remaining active) on non-target views so the Landing page is always visible and clickable. The overlay must only render when the currently-rendered view matches the activation target (e.g., only show for dashboard activation while the Dashboard view is actually mounted).",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/ViewActivationOverlay.tsx",
+          "frontend/src/App.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/ViewActivationOverlay.tsx",
+          "frontend/src/App.tsx"
+        ]
       },
       {
         "id": "REQ-2",
-        "summary": "Wire the frontend React Query hooks to the real backend profile methods: update `useGetCallerUserProfile` and `useSaveCallerUserProfile` in `frontend/src/hooks/useQueries.ts` to call the backend methods, keep the existing query key `['currentUserProfile']`, and ensure the query is invalidated/refetched on successful save so the Profile Setup dialog is dismissed by `App.tsx` logic.",
+        "summary": "Harden the view-activation lifecycle so activation always finishes reliably: ensure activation is cancelled on any navigation away from the target view and finished when the target view has rendered and its initial critical loading has settled (including Dashboard loading states).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/components/ProfileSetup.tsx"
+          "frontend/src/App.tsx",
+          "frontend/src/pages/Dashboard.tsx",
+          "frontend/src/components/Header.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/components/ProfileSetup.tsx"
+          "frontend/src/App.tsx",
+          "frontend/src/pages/Dashboard.tsx",
+          "frontend/src/components/Header.tsx"
+        ]
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Add defensive safeguards against “stuck” activation state: ensure any safety timeout cleanup cannot leave a stale activation that blocks interaction, and add minimal instrumentation (console debug logs guarded by a development check) to trace start/finish/cancel transitions during development builds.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/contexts/ViewActivationContext.tsx",
+          "frontend/src/contexts/ViewActivationContext.tsx",
+          "frontend/src/App.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/contexts/ViewActivationContext.tsx",
+          "frontend/src/contexts/ViewActivationContext.tsx",
+          "frontend/src/App.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
-    "frontend/src/components/ProfileSetup.tsx",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
-    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/App.tsx",
+    "frontend/src/components/Header.tsx",
+    "frontend/src/components/ViewActivationOverlay.tsx",
+    "frontend/src/contexts/ViewActivationContext.tsx",
+    "frontend/src/pages/Dashboard.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

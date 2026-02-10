@@ -21,18 +21,26 @@ export default function Dashboard({ onNavigate, onStartTest }: DashboardProps) {
   const { data: userProfile, isLoading: profileLoading, isFetching: profileFetching, isFetched: profileFetched } = useGetCallerUserProfile();
   const { data: userRole } = useGetCallerRole();
   const { data: testConfigsWithStatus, isLoading: testsLoading, isFetching: testsFetching, isError: testsError, isFetched: testsFetched } = useGetTestConfigsWithStatus();
-  const { finishActivation } = useViewActivation();
+  const { finishActivation, cancelActivation } = useViewActivation();
 
   const isAdmin = userRole === 'admin';
 
+  // Finish activation when Dashboard has loaded
   useEffect(() => {
     const profileSettled = profileFetched || (!profileLoading && !profileFetching);
     const testsSettled = testsFetched || testsError || (!testsLoading && !testsFetching);
     
     if (profileSettled && testsSettled) {
-      finishActivation();
+      finishActivation('dashboard');
     }
   }, [profileLoading, profileFetching, profileFetched, testsLoading, testsFetching, testsFetched, testsError, finishActivation]);
+
+  // Cancel activation on unmount (user navigated away mid-load)
+  useEffect(() => {
+    return () => {
+      cancelActivation('dashboard');
+    };
+  }, [cancelActivation]);
 
   if (profileLoading || testsLoading) {
     return (

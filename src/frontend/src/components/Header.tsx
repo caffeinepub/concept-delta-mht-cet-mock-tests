@@ -3,11 +3,11 @@ import { useGetCallerUserProfile } from '../hooks/useQueries';
 import { useBootstrappedCallerRole } from '../hooks/useBootstrappedCallerRole';
 import { useViewActivation } from '../contexts/ViewActivationContext';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
-import { AppView } from '../App';
-import { Menu, User, LogOut, Info, LayoutDashboard } from 'lucide-react';
-import { useQueryClient } from '@tanstack/react-query';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Menu, User, LogOut, Home, Info, LayoutDashboard, Shield } from 'lucide-react';
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { AppView } from '../App';
 
 interface HeaderProps {
   onNavigate: (view: AppView) => void;
@@ -15,148 +15,202 @@ interface HeaderProps {
 }
 
 export default function Header({ onNavigate, currentView }: HeaderProps) {
-  const { identity, clear } = useInternetIdentity();
+  const { identity, clear, loginStatus, login } = useInternetIdentity();
   const { data: userProfile } = useGetCallerUserProfile();
   const { isAdmin } = useBootstrappedCallerRole();
-  const { isActivatingView } = useViewActivation();
+  const { cancelActivation } = useViewActivation();
   const queryClient = useQueryClient();
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   const isAuthenticated = !!identity;
-  const isDashboardActivating = isActivatingView('dashboard');
+  const isLoggingIn = loginStatus === 'logging-in';
 
   const handleLogout = async () => {
+    cancelActivation('header-logout');
     await clear();
     queryClient.clear();
     onNavigate('landing');
-    setSheetOpen(false);
+  };
+
+  const handleLogin = async () => {
+    try {
+      await login();
+    } catch (error: any) {
+      console.error('Login error:', error);
+      if (error.message === 'User is already authenticated') {
+        await clear();
+        setTimeout(() => login(), 300);
+      }
+    }
   };
 
   const handleNavigation = (view: AppView) => {
-    // Close sheet first, then navigate after a brief delay to allow portal cleanup
-    setSheetOpen(false);
-    setTimeout(() => {
-      onNavigate(view);
-    }, 100);
-  };
-
-  const getDashboardLabel = () => {
-    if (isDashboardActivating) return 'Loading...';
-    return 'Dashboard';
+    setIsSheetOpen(false);
+    setTimeout(() => onNavigate(view), 50);
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border bg-background shadow-sm">
-      <div className="container flex h-16 items-center justify-between px-4 sm:px-6">
-        {/* Logo */}
-        <button
-          onClick={() => handleNavigation('landing')}
-          className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-        >
-          <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-            <span className="text-xl font-bold text-primary-foreground">Δ</span>
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-14 sm:h-16 items-center justify-between px-4 sm:px-6">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <img 
+            src="/assets/generated/concept-delta-logo.dim_200x200.png" 
+            alt="Concept Delta Logo" 
+            className="h-8 w-8 sm:h-10 sm:w-10"
+          />
+          <div className="flex flex-col">
+            <span className="text-base sm:text-lg font-bold text-foreground leading-tight">
+              Concept Delta
+            </span>
+            <span className="text-[10px] sm:text-xs text-muted-foreground leading-tight">
+              MHT-CET Mock Tests
+            </span>
           </div>
-          <span className="text-lg sm:text-xl font-bold text-foreground hidden xs:inline">
-            Concept Delta
-          </span>
-        </button>
+        </div>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-2">
+        <nav className="hidden md:flex items-center gap-1">
           <Button
-            variant="ghost"
-            onClick={() => onNavigate('about')}
-            className={currentView === 'about' ? 'bg-accent' : ''}
+            variant={currentView === 'landing' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => onNavigate('landing')}
+            className="gap-2"
           >
-            <Info className="w-4 h-4 mr-2" />
+            <Home className="h-4 w-4" />
+            Home
+          </Button>
+          <Button
+            variant={currentView === 'about' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => onNavigate('about')}
+            className="gap-2"
+          >
+            <Info className="h-4 w-4" />
             About
           </Button>
-
-          {isAuthenticated && userProfile && (
-            <>
-              <Button
-                variant="ghost"
-                onClick={() => onNavigate('dashboard')}
-                disabled={isDashboardActivating}
-                className={currentView === 'dashboard' ? 'bg-accent' : ''}
-              >
-                <LayoutDashboard className="w-4 h-4 mr-2" />
-                {getDashboardLabel()}
-              </Button>
-            </>
-          )}
-
-          {isAuthenticated && userProfile && (
-            <div className="flex items-center gap-2 ml-2 pl-2 border-l border-border">
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-muted rounded-md">
-                <User className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm font-medium text-foreground">
-                  {userProfile.fullName}
-                </span>
-              </div>
-              <Button variant="ghost" size="sm" onClick={handleLogout}>
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
-              </Button>
-            </div>
+          {isAuthenticated && (
+            <Button
+              variant={currentView === 'dashboard' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => onNavigate('dashboard')}
+              className="gap-2"
+            >
+              <LayoutDashboard className="h-4 w-4" />
+              Dashboard
+            </Button>
           )}
         </nav>
 
-        {/* Mobile Menu */}
-        <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-          <SheetTrigger asChild className="md:hidden">
-            <Button variant="ghost" size="icon">
-              <Menu className="w-5 h-5" />
+        <div className="flex items-center gap-2 sm:gap-3">
+          {isAuthenticated ? (
+            <>
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary">
+                <User className="h-4 w-4" />
+                <span className="text-sm font-medium truncate max-w-[120px]">
+                  {userProfile?.fullName || 'User'}
+                </span>
+                {isAdmin && <Shield className="h-4 w-4 text-primary" />}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleLogout}
+                className="hidden md:flex gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                Logout
+              </Button>
+            </>
+          ) : (
+            <Button
+              variant="default"
+              size="sm"
+              onClick={handleLogin}
+              disabled={isLoggingIn}
+              className="hidden md:flex"
+            >
+              {isLoggingIn ? 'Logging in...' : 'Login'}
             </Button>
-          </SheetTrigger>
-          <SheetContent side="right" className="mobile-menu-sheet-content w-[280px] sm:w-[320px]">
-            <div className="flex flex-col gap-4 mt-8">
-              <SheetClose asChild>
-                <Button
-                  variant="ghost"
-                  onClick={() => handleNavigation('about')}
-                  className={`justify-start ${currentView === 'about' ? 'bg-accent' : ''}`}
-                >
-                  <Info className="w-4 h-4 mr-2" />
-                  About
-                </Button>
-              </SheetClose>
+          )}
 
-              {isAuthenticated && userProfile && (
-                <>
-                  <SheetClose asChild>
-                    <Button
-                      variant="ghost"
-                      onClick={() => handleNavigation('dashboard')}
-                      disabled={isDashboardActivating}
-                      className={`justify-start ${currentView === 'dashboard' ? 'bg-accent' : ''}`}
-                    >
-                      <LayoutDashboard className="w-4 h-4 mr-2" />
-                      {getDashboardLabel()}
-                    </Button>
-                  </SheetClose>
-
-                  <div className="pt-4 border-t border-border">
-                    <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-md mb-3">
-                      <User className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm font-medium text-foreground">
-                        {userProfile.fullName}
-                      </span>
+          <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="md:hidden">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[280px] sm:w-[320px]">
+              <div className="flex flex-col gap-4 mt-8">
+                {isAuthenticated && (
+                  <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-primary/10 text-primary">
+                    <User className="h-5 w-5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">
+                        {userProfile?.fullName || 'User'}
+                      </p>
+                      {isAdmin && (
+                        <p className="text-xs text-primary/80 flex items-center gap-1">
+                          <Shield className="h-3 w-3" />
+                          Admin
+                        </p>
+                      )}
                     </div>
+                  </div>
+                )}
+
+                <nav className="flex flex-col gap-2">
+                  <Button
+                    variant={currentView === 'landing' ? 'default' : 'ghost'}
+                    className="justify-start gap-3"
+                    onClick={() => handleNavigation('landing')}
+                  >
+                    <Home className="h-5 w-5" />
+                    Home
+                  </Button>
+                  <Button
+                    variant={currentView === 'about' ? 'default' : 'ghost'}
+                    className="justify-start gap-3"
+                    onClick={() => handleNavigation('about')}
+                  >
+                    <Info className="h-5 w-5" />
+                    About
+                  </Button>
+                  {isAuthenticated && (
                     <Button
-                      variant="ghost"
-                      onClick={handleLogout}
-                      className="w-full justify-start"
+                      variant={currentView === 'dashboard' ? 'default' : 'ghost'}
+                      className="justify-start gap-3"
+                      onClick={() => handleNavigation('dashboard')}
                     >
-                      <LogOut className="w-4 h-4 mr-2" />
+                      <LayoutDashboard className="h-5 w-5" />
+                      Dashboard
+                    </Button>
+                  )}
+                </nav>
+
+                <div className="mt-auto pt-4 border-t">
+                  {isAuthenticated ? (
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start gap-3"
+                      onClick={handleLogout}
+                    >
+                      <LogOut className="h-5 w-5" />
                       Logout
                     </Button>
-                  </div>
-                </>
-              )}
-            </div>
-          </SheetContent>
-        </Sheet>
+                  ) : (
+                    <Button
+                      variant="default"
+                      className="w-full"
+                      onClick={handleLogin}
+                      disabled={isLoggingIn}
+                    >
+                      {isLoggingIn ? 'Logging in...' : 'Login'}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
     </header>
   );

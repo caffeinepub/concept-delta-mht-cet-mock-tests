@@ -19,27 +19,30 @@ function AppContent() {
   const { identity } = useInternetIdentity();
   const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
   const { isAdmin, isRoleKnown } = useBootstrappedCallerRole();
-  const { startActivation, finishActivation } = useViewActivation();
+  const { startActivation, finishActivation, cancelActivation } = useViewActivation();
   
-  // Initialize view from persisted state or default to landing
+  const isAuthenticated = !!identity;
+  
+  // Initialize view with safe restoration logic
   const [currentView, setCurrentView] = useState<AppView>(() => {
+    // Always start with landing for fresh loads
     const lastView = getLastView();
-    // Only restore valid views
-    if (lastView === 'dashboard' || lastView === 'about') {
-      return lastView;
+    
+    // Only restore About immediately (it's always accessible)
+    if (lastView === 'about') {
+      return 'about';
     }
-    const lastNonTestView = getLastNonTestView();
-    if (lastNonTestView === 'dashboard' || lastNonTestView === 'about') {
-      return lastNonTestView;
-    }
+    
+    // For dashboard or any other view, default to landing
+    // We'll handle dashboard restoration after auth check
     return 'landing';
   });
   
-  const isAuthenticated = !!identity;
   const showProfileSetup = isAuthenticated && !profileLoading && isFetched && userProfile === null;
   
   // Track if we've already auto-navigated after login
   const hasAutoNavigated = useRef(false);
+  const isInitialMount = useRef(true);
 
   // Set SEO metadata
   useEffect(() => {
@@ -56,12 +59,30 @@ function AppContent() {
     }
   }, []);
 
-  // Auto-navigate to Dashboard after successful login (if profile exists)
+  // Handle initial view restoration for dashboard (only after auth is confirmed)
   useEffect(() => {
-    if (isAuthenticated && !profileLoading && isFetched && userProfile && !hasAutoNavigated.current) {
+    if (isInitialMount.current && isAuthenticated && !profileLoading && isFetched && userProfile) {
+      const lastView = getLastView();
+      const lastNonTestView = getLastNonTestView();
+      
+      // Restore dashboard if it was the last view
+      if (lastView === 'dashboard' || lastNonTestView === 'dashboard') {
+        startActivation('dashboard', 'landing');
+        setCurrentView('dashboard');
+        saveView('dashboard');
+        hasAutoNavigated.current = true;
+      }
+      
+      isInitialMount.current = false;
+    }
+  }, [isAuthenticated, profileLoading, isFetched, userProfile, startActivation]);
+
+  // Auto-navigate to Dashboard after successful login (if profile exists and not already navigated)
+  useEffect(() => {
+    if (isAuthenticated && !profileLoading && isFetched && userProfile && !hasAutoNavigated.current && !isInitialMount.current) {
       // Only auto-navigate if we're on landing page
       if (currentView === 'landing') {
-        startActivation('dashboard');
+        startActivation('dashboard', currentView);
         setCurrentView('dashboard');
         saveView('dashboard');
         hasAutoNavigated.current = true;
@@ -71,9 +92,17 @@ function AppContent() {
     // Reset auto-navigation flag and clear activation when user logs out
     if (!isAuthenticated) {
       hasAutoNavigated.current = false;
-      finishActivation();
+      isInitialMount.current = false;
+      cancelActivation(currentView);
     }
-  }, [isAuthenticated, profileLoading, isFetched, userProfile, currentView, startActivation, finishActivation]);
+  }, [isAuthenticated, profileLoading, isFetched, userProfile, currentView, startActivation, cancelActivation]);
+
+  // Cancel activation when navigating away from the target view
+  useEffect(() => {
+    if (currentView !== 'dashboard') {
+      cancelActivation(currentView);
+    }
+  }, [currentView, cancelActivation]);
 
   // Persist view changes
   useEffect(() => {
@@ -83,12 +112,10 @@ function AppContent() {
   const handleNavigate = (view: AppView) => {
     // Dashboard navigation - start activation
     if (view === 'dashboard') {
-      startActivation('dashboard');
-    }
-
-    // For About and Landing, finish any pending activation
-    if (view === 'about' || view === 'landing') {
-      finishActivation();
+      startActivation('dashboard', currentView);
+    } else {
+      // For About and Landing, cancel any pending activation immediately
+      cancelActivation(currentView);
     }
 
     setCurrentView(view);
@@ -106,7 +133,7 @@ function AppContent() {
 
   return (
     <>
-      <ViewActivationOverlay />
+      <ViewActivationOverlay currentView={currentView} />
       {currentView === 'landing' && (
         <LandingPage onNavigate={handleNavigate} />
       )}

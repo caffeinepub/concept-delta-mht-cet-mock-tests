@@ -1,71 +1,76 @@
 {
   "kind": "build_request",
-  "title": "Fix Profile Setup overlay by implementing backend user profile methods and wiring React Query hooks",
+  "title": "Fix stuck ViewActivationOverlay that blocks Landing page interaction",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Implement Motoko backend support for caller user profiles by adding public shared methods `getCallerUserProfile()` and `saveCallerUserProfile(...)` in `backend/main.mo`, storing profiles in the existing `userProfiles` map keyed by caller Principal, and returning the created/updated profile.",
-      "target": "backend",
+      "text": "Prevent ViewActivationOverlay from appearing (or remaining active) on non-target views so the Landing page is always visible and clickable. The overlay must only render when the currently-rendered view matches the activation target (e.g., only show for dashboard activation while the Dashboard view is actually mounted).",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-1",
-          "msg-user-2"
+          "msg-1"
         ],
         "quotes": [
-          "work on solution",
-          "Profile save method not yet implemented in backend. Please add getCallerUserProfile() and saveCallerUserProfile() methods to backend/main.mo"
+          "solve problem"
         ]
       },
       "acceptanceCriteria": [
-        "Calling `getCallerUserProfile()` as an authenticated user returns null/none when no profile exists for the caller.",
-        "Calling `saveCallerUserProfile(...)` creates a new profile for the caller when none exists, with `id = caller`, `createdAt` set on first create, `lastLogin` set/updated on save, and `testAttempts` initialized to an empty array.",
-        "Calling `saveCallerUserProfile(...)` for an existing caller updates the profile fields and updates `lastLogin` without resetting `createdAt` or overwriting `testAttempts`.",
-        "The canister Candid includes both methods and the frontend actor can call them without trapping with \"Method not implemented\"."
+        "When the app is on Landing or About, there is no fullscreen overlay element intercepting clicks (no dark/transparent layer blocking interaction).",
+        "If an activation for Dashboard is started but the user navigates to Landing/About (or logs out) before it finishes, the overlay immediately disappears and does not reappear.",
+        "Reproducing the reported state (“only About button works”) is no longer possible; all Landing CTAs/links/buttons remain clickable."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Wire the frontend React Query hooks to the real backend profile methods: update `useGetCallerUserProfile` and `useSaveCallerUserProfile` in `frontend/src/hooks/useQueries.ts` to call the backend methods, keep the existing query key `['currentUserProfile']`, and ensure the query is invalidated/refetched on successful save so the Profile Setup dialog is dismissed by `App.tsx` logic.",
+      "text": "Harden the view-activation lifecycle so activation always finishes reliably: ensure activation is cancelled on any navigation away from the target view and finished when the target view has rendered and its initial critical loading has settled (including Dashboard loading states).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-1"
+          "msg-1"
         ],
         "quotes": [
-          "work on solution"
+          "solve problem"
         ]
       },
       "acceptanceCriteria": [
-        "`useGetCallerUserProfile` calls the backend `getCallerUserProfile()` and returns a `UserProfile` when present, otherwise `null`.",
-        "`useSaveCallerUserProfile` calls backend `saveCallerUserProfile(...)` and no longer throws the hardcoded \"Profile save method not yet implemented\" error.",
-        "After a successful profile save, `['currentUserProfile']` is invalidated and refetched, and `App.tsx` stops rendering `<ProfileSetup />` (overlay disappears and the app becomes usable).",
-        "On save failure, the Profile Setup dialog remains open and a user-visible error toast is shown (in English)."
+        "Starting navigation to Dashboard triggers activation, and the overlay is removed automatically once Dashboard has rendered and initial queries have settled (success or error).",
+        "Navigating away from Dashboard (to Landing/About) always cancels activation immediately (no lingering activation state).",
+        "Logging out always cancels activation and leaves the app in a fully interactive Landing view."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Add defensive safeguards against “stuck” activation state: ensure any safety timeout cleanup cannot leave a stale activation that blocks interaction, and add minimal instrumentation (console debug logs guarded by a development check) to trace start/finish/cancel transitions during development builds.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "solve problem"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Activation state cannot remain true beyond the configured safety timeout for the same target; after timeout, overlay is not rendered and clicks work normally.",
+        "In development mode, start/finish/cancel/timeout events are logged with the current target and current view to aid debugging; no noisy logs in production build.",
+        "No React warnings/errors are introduced (e.g., due to timers updating state after unmount)."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in `backend/main.mo` (no additional backend services).",
-    "Do not edit any files under `frontend/src/components/ui` or any paths listed as immutable in SYSTEM_CONTEXT.",
-    "Use English for any user-facing text."
+    "Do not edit files under frontend/src/components/ui (read-only Shadcn components).",
+    "Do not modify immutable hook/provider files listed in SYSTEM_CONTEXT.frontend.immutablePaths.",
+    "Keep backend unchanged unless strictly necessary; this fix should be achievable in frontend view/overlay logic.",
+    "Maintain the single-actor Motoko architecture (no new backend services)."
   ],
   "nonGoals": [
-    "Implementing other stubbed backend methods (tests, questions, comments, suggestions, admin panel) beyond what is required to fix profile creation/fetch.",
-    "Adding third-party authentication providers (only Internet Identity is supported).",
-    "Changing the overall landing page/dashboard feature set beyond ensuring the profile overlay can be dismissed."
+    "Redesigning the Landing page content or adding new product features.",
+    "Adding new authentication methods beyond Internet Identity.",
+    "Implementing missing placeholder pages/components (AdminPanel, ResultPage, TestInterface, PDF export placeholders) unless required to resolve the overlay regression."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

@@ -1,12 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Remove the blocking Profile Setup overlay by implementing backend user profile methods and wiring the frontend React Query hooks to them.
+**Goal:** Fix the ViewActivationOverlay so it never blocks interaction on Landing/About and cannot get stuck during or after navigation.
 
 **Planned changes:**
-- Add `getCallerUserProfile()` and `saveCallerUserProfile(...)` as public shared methods in `backend/main.mo`, storing profiles in the existing `userProfiles` map keyed by the caller Principal and returning the created/updated profile.
-- Ensure backend profile save behavior: create on first save (set `id = caller`, set `createdAt`, set/update `lastLogin`, initialize `testAttempts` as empty) and update on subsequent saves (update fields and `lastLogin` without resetting `createdAt` or overwriting `testAttempts`).
-- Update `frontend/src/hooks/useQueries.ts` so `useGetCallerUserProfile` calls `getCallerUserProfile()` (query key remains `['currentUserProfile']`) and returns a `UserProfile` or `null`.
-- Update `useSaveCallerUserProfile` to call `saveCallerUserProfile(...)`, invalidate/refetch `['currentUserProfile']` on success so `App.tsx` stops rendering `<ProfileSetup />`, and show an English error toast on failure while keeping the dialog open.
+- Restrict ViewActivationOverlay rendering to only when the currently mounted view matches the activation target; ensure it does not appear or persist on Landing/About.
+- Harden the activation lifecycle so activation reliably finishes when the target view (e.g., Dashboard) has rendered and its initial loading settles, and is cancelled immediately on navigation away from the target view or on logout.
+- Add defensive safeguards to prevent “stuck” activation state (including safety-timeout cleanup that cannot leave a blocking overlay), plus minimal development-only console debug logs for start/finish/cancel/timeout transitions.
 
-**User-visible outcome:** After signing in, users can create/save their profile successfully and the Profile Setup overlay closes, allowing normal app usage; if saving fails, an English error toast is shown and the overlay remains open.
+**User-visible outcome:** Landing and About remain fully clickable with no fullscreen overlay blocking input; Dashboard activation overlay appears only while Dashboard is actually being activated and reliably disappears on completion, navigation away, or logout.
