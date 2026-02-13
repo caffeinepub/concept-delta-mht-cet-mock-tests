@@ -94,8 +94,25 @@ export interface _CaffeineStorageRefillResult {
     topped_up_amount?: bigint;
 }
 export type Time = bigint;
+export interface SuggestionsResponse {
+    suggestions: Array<Suggestion>;
+    count: bigint;
+}
+export interface Comment {
+    id: bigint;
+    userId: Principal;
+    text: string;
+    timestamp: Time;
+    questionId: bigint;
+}
 export interface _CaffeineStorageRefillInformation {
     proposed_top_up_amount?: bigint;
+}
+export interface Suggestion {
+    id: bigint;
+    feedback: string;
+    author: string;
+    timestamp: Time;
 }
 export interface _CaffeineStorageCreateCertificateResult {
     method: string;
@@ -136,12 +153,19 @@ export interface backendInterface {
     _caffeineStorageUpdateGatewayPrincipals(): Promise<void>;
     _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    deleteComment(id: bigint): Promise<void>;
     deleteQuestion(questionId: bigint): Promise<void>;
+    deleteSuggestion(id: bigint): Promise<void>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
+    listCommentsForQuestion(questionId: bigint): Promise<Array<Comment>>;
+    listSuggestions(): Promise<SuggestionsResponse>;
+    postComment(questionId: bigint, text: string): Promise<bigint>;
     saveCallerUserProfile(profile: UserProfile): Promise<UserProfile>;
+    setYouTubeVerified(): Promise<void>;
+    submitSuggestion(author: string, feedback: string): Promise<bigint>;
 }
 import type { TestAttempt as _TestAttempt, Time as _Time, UserProfile as _UserProfile, UserRole as _UserRole, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
@@ -258,6 +282,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async deleteComment(arg0: bigint): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteComment(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteComment(arg0);
+            return result;
+        }
+    }
     async deleteQuestion(arg0: bigint): Promise<void> {
         if (this.processError) {
             try {
@@ -269,6 +307,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.deleteQuestion(arg0);
+            return result;
+        }
+    }
+    async deleteSuggestion(arg0: bigint): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteSuggestion(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteSuggestion(arg0);
             return result;
         }
     }
@@ -328,6 +380,48 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async listCommentsForQuestion(arg0: bigint): Promise<Array<Comment>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.listCommentsForQuestion(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.listCommentsForQuestion(arg0);
+            return result;
+        }
+    }
+    async listSuggestions(): Promise<SuggestionsResponse> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.listSuggestions();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.listSuggestions();
+            return result;
+        }
+    }
+    async postComment(arg0: bigint, arg1: string): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.postComment(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.postComment(arg0, arg1);
+            return result;
+        }
+    }
     async saveCallerUserProfile(arg0: UserProfile): Promise<UserProfile> {
         if (this.processError) {
             try {
@@ -340,6 +434,34 @@ export class Backend implements backendInterface {
         } else {
             const result = await this.actor.saveCallerUserProfile(to_candid_UserProfile_n16(this._uploadFile, this._downloadFile, arg0));
             return from_candid_UserProfile_n11(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async setYouTubeVerified(): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.setYouTubeVerified();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.setYouTubeVerified();
+            return result;
+        }
+    }
+    async submitSuggestion(arg0: string, arg1: string): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.submitSuggestion(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.submitSuggestion(arg0, arg1);
+            return result;
         }
     }
 }

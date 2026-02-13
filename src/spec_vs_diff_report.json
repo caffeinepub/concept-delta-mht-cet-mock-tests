@@ -1,97 +1,70 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-10T19:24:36.387Z",
-  "summary": "The diff implements the requested overlay scoping and lifecycle hardening: ViewActivationOverlay now renders only when the current view matches the activation target, activation is finished when Dashboard’s initial queries settle, activation is cancelled on Dashboard unmount and on logout, and the activation context adds a safety timeout plus dev-only console logging. However, the diff also includes multiple unrelated feature additions/changes (MathJax support, major Admin/Test/Result functionality, Tailwind theme extensions, etc.) that were not requested for the overlay regression fix.",
-  "missing_requirements": [],
-  "hallucinated_features": [
+  "generatedAt": "2026-02-13T16:32:59.762Z",
+  "summary": "The diff primarily updates frontend query hooks and project metadata, but does not show implementation of the requested backend APIs in `backend/main.mo` (at least not within the provided truncated excerpt). As a result, all four backend requirements cannot be verified as implemented and appear missing based on available evidence.",
+  "missing_requirements": [
     {
-      "description": "Global MathJax loading and new MathContent component for rendering LaTeX/math content",
-      "reason": "Not requested by any REQ; unrelated to fixing ViewActivationOverlay lifecycle/visibility.",
+      "id": "REQ-1",
+      "requirement": "Implement backend API `getCallerUserRole()` returning \"admin\"/\"user\"/\"guest\" using existing MixinAuthorization + AccessControl and not trapping for anonymous callers.",
+      "reason": "The diff excerpt of `backend/main.mo` only shows type definitions, state initialization (AccessControl/MixinAuthorization), and map declarations; no `public func getCallerUserRole` (or equivalent) is visible in the provided diff summary.",
       "evidence": [
-        "frontend-file-summaries.txt (frontend/index.html MathJax CDN; frontend/src/components/MathContent.tsx)"
+        "backend/main.mo (truncated; no API implementation shown)"
       ]
     },
     {
-      "description": "Extensive TestInterface implementation (session initialization, throttled activity updates, unanswered sentinel, mobile validation, etc.)",
-      "reason": "BuildRequest explicitly lists implementing placeholder pages/components (including TestInterface) as a non-goal unless required for overlay regression; no evidence it is required for the overlay fix.",
+      "id": "REQ-2",
+      "requirement": "Implement backend API `setYouTubeVerified()` that updates caller's stored `UserProfile` (`isYouTubeVerified=true`, `youtubeVerificationTimestamp=?Time.now()`) without parameters; trap if no profile exists.",
+      "reason": "No function implementing YouTube verification is visible in the provided `backend/main.mo` diff excerpt; only the `UserProfile` type includes the relevant fields.",
       "evidence": [
-        "frontend-file-summaries.txt (frontend/src/pages/TestInterface.tsx)"
+        "backend/main.mo (truncated; only type/state shown)"
       ]
     },
     {
-      "description": "ResultPage implementation showing performance metrics and TestType label handling",
-      "reason": "Non-goal per BuildRequest (ResultPage placeholder) unless required for overlay regression; not evidenced as necessary for overlay fix.",
+      "id": "REQ-3",
+      "requirement": "Add backend suggestion APIs: submit suggestion (author+feedback, incremental id+timestamp), list suggestions returning `SuggestionsResponse` ({suggestions; count}), and admin-only delete by id using existing `suggestions` map.",
+      "reason": "Although `Suggestion`, `SuggestionsResponse`, and `suggestions = Map.empty<Nat, Suggestion>()` are shown, the diff excerpt does not show any public methods for submit/list/delete or admin checks.",
       "evidence": [
-        "frontend-file-summaries.txt (frontend/src/pages/ResultPage.tsx)"
+        "backend/main.mo (truncated; types/maps only)"
       ]
     },
     {
-      "description": "Comprehensive AdminPanel implementation (question creation with image support, test/user management, monitoring, activation coordination)",
-      "reason": "Non-goal per BuildRequest (AdminPanel placeholder) unless required for overlay regression; not evidenced as necessary for overlay fix.",
+      "id": "REQ-4",
+      "requirement": "Add backend comment APIs: `getCommentsByQuestion(questionId)`, `postComment(questionId,text)` (incremental id, caller principal userId, timestamp), and admin-only `deleteComment(commentId)` using existing `comments` map and public `Comment` type.",
+      "reason": "The `Comment` type is visible, but the provided diff excerpt does not show a `comments` map declaration nor any public comment API methods or admin enforcement logic.",
       "evidence": [
-        "frontend-file-summaries.txt (frontend/src/pages/AdminPanel.tsx)"
-      ]
-    },
-    {
-      "description": "Tailwind theme extensions adding many status colors (success/info/warning and multiple test status colors)",
-      "reason": "Not requested by REQ-1/2/3; unrelated to overlay activation lifecycle.",
-      "evidence": [
-        "frontend-file-summaries.txt (frontend/tailwind.config.js)"
-      ]
-    },
-    {
-      "description": "ViewPersistence behavior changes for restoring last view / last non-test view on initial load",
-      "reason": "Not requested explicitly in REQ-1/2/3; it may be related but exceeds the stated scope focused on overlay rendering/lifecycle and could be considered additional navigation logic work.",
-      "evidence": [
-        "frontend/src/App.tsx",
-        "frontend-file-summaries.txt (frontend/src/App.tsx mentions hardened view restoration logic)"
-      ]
-    },
-    {
-      "description": "Landing page content changes (branding, YouTube subscription section, primary CTA button)",
-      "reason": "BuildRequest non-goals include redesigning Landing page content or adding new product features; these changes appear to be content/feature additions beyond overlay fix.",
-      "evidence": [
-        "frontend-file-summaries.txt (frontend/src/pages/LandingPage.tsx)"
-      ]
-    },
-    {
-      "description": "Footer responsive typography/spacing redesign",
-      "reason": "Not requested; unrelated to overlay lifecycle fix.",
-      "evidence": [
-        "frontend-file-summaries.txt (frontend/src/components/Footer.tsx)"
-      ]
-    },
-    {
-      "description": "Major changes to React Query hooks for backend type bridging and error toast handling",
-      "reason": "Not requested by REQ-1/2/3; unrelated to overlay rendering/lifecycle requirements.",
-      "evidence": [
-        "frontend-file-summaries.txt (frontend/src/hooks/useQueries.ts)"
-      ]
-    },
-    {
-      "description": "QuestionGallery enhancements (admin delete, filtering, selection handling, confirmation dialog)",
-      "reason": "Not requested; unrelated to overlay lifecycle fix.",
-      "evidence": [
-        "frontend-file-summaries.txt (frontend/src/components/QuestionGallery.tsx)"
-      ]
-    },
-    {
-      "description": "UserManagement enhancements with advanced filtering",
-      "reason": "Not requested; unrelated to overlay lifecycle fix.",
-      "evidence": [
-        "frontend-file-summaries.txt (frontend/src/components/UserManagement.tsx)"
+        "backend/main.mo (truncated; no comment APIs shown)"
       ]
     }
   ],
-  "confidence": 0.74,
+  "hallucinated_features": [
+    {
+      "description": "Frontend React Query hooks for comments/suggestions/YouTube verification implemented/updated in `frontend/src/hooks/useQueries.ts`.",
+      "reason": "The BuildRequest is explicitly for backend APIs (single Motoko actor changes) and does not request adding/rewriting frontend query hooks; this constitutes additional unrequested work.",
+      "evidence": [
+        "frontend/src/hooks/useQueries.ts"
+      ]
+    },
+    {
+      "description": "Project metadata/state tracking updates in `project_state.json`.",
+      "reason": "Not requested by the BuildRequest requirements; appears to be auxiliary bookkeeping.",
+      "evidence": [
+        "project_state.json"
+      ]
+    },
+    {
+      "description": "Added/modified `frontend-file-summaries.txt` containing broad frontend change descriptions (CSS, pages, MathJax, Tailwind, etc.).",
+      "reason": "Not requested by the BuildRequest and also not part of the specified backend deliverables; additionally, it describes many frontend changes beyond the modified-file list, making it unrelated/noisy for the requested backend work.",
+      "evidence": [
+        "frontend-file-summaries.txt"
+      ]
+    }
+  ],
+  "confidence": 0.64,
   "changed_files": [
+    "backend/main.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/App.tsx",
-    "frontend/src/components/Header.tsx",
-    "frontend/src/components/ViewActivationOverlay.tsx",
-    "frontend/src/contexts/ViewActivationContext.tsx",
-    "frontend/src/pages/Dashboard.tsx",
+    "frontend/src/hooks/useQueries.ts",
     "project_state.json"
   ]
 }

@@ -235,4 +235,79 @@ actor {
       testConfigs.add(testId, updatedConfig);
     };
   };
+
+  public shared ({ caller }) func setYouTubeVerified() : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can set YouTube verification");
+    };
+
+    switch (userProfiles.get(caller)) {
+      case (null) {
+        Runtime.trap("User profile not found");
+      };
+      case (?profile) {
+        let updatedProfile : UserProfile = {
+          profile with
+          isYouTubeVerified = true;
+          youtubeVerificationTimestamp = ?Time.now();
+        };
+        userProfiles.add(caller, updatedProfile);
+      };
+    };
+  };
+
+  public shared ({ caller }) func submitSuggestion(author : Text, feedback : Text) : async Nat {
+    let suggestion : Suggestion = {
+      id = nextSuggestionId;
+      author;
+      feedback;
+      timestamp = Time.now();
+    };
+    suggestions.add(nextSuggestionId, suggestion);
+    nextSuggestionId += 1;
+    suggestion.id;
+  };
+
+  public shared query ({ caller }) func listSuggestions() : async SuggestionsResponse {
+    let suggestionList = suggestions.values().toArray();
+    {
+      suggestions = suggestionList;
+      count = suggestionList.size();
+    };
+  };
+
+  public shared ({ caller }) func deleteSuggestion(id : Nat) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can delete suggestions");
+    };
+    suggestions.remove(id);
+  };
+
+  public shared query ({ caller }) func listCommentsForQuestion(questionId : Nat) : async [Comment] {
+    comments.values().toArray().filter(func(c) { c.questionId == questionId });
+  };
+
+  public shared ({ caller }) func postComment(questionId : Nat, text : Text) : async Nat {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can post comments");
+    };
+
+    let comment : Comment = {
+      id = nextCommentId;
+      questionId;
+      userId = caller;
+      text;
+      timestamp = Time.now();
+    };
+    comments.add(nextCommentId, comment);
+    nextCommentId += 1;
+    comment.id;
+  };
+
+  public shared ({ caller }) func deleteComment(id : Nat) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can delete comments");
+    };
+    comments.remove(id);
+  };
 };

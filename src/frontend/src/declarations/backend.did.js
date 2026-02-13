@@ -46,6 +46,23 @@ export const UserProfile = IDL.Record({
   'testAttempts' : IDL.Vec(TestAttempt),
   'blockTimestamp' : IDL.Opt(Time),
 });
+export const Comment = IDL.Record({
+  'id' : IDL.Nat,
+  'userId' : IDL.Principal,
+  'text' : IDL.Text,
+  'timestamp' : Time,
+  'questionId' : IDL.Nat,
+});
+export const Suggestion = IDL.Record({
+  'id' : IDL.Nat,
+  'feedback' : IDL.Text,
+  'author' : IDL.Text,
+  'timestamp' : Time,
+});
+export const SuggestionsResponse = IDL.Record({
+  'suggestions' : IDL.Vec(Suggestion),
+  'count' : IDL.Nat,
+});
 
 export const idlService = IDL.Service({
   '_caffeineStorageBlobIsLive' : IDL.Func(
@@ -76,7 +93,9 @@ export const idlService = IDL.Service({
   '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+  'deleteComment' : IDL.Func([IDL.Nat], [], []),
   'deleteQuestion' : IDL.Func([IDL.Nat], [], []),
+  'deleteSuggestion' : IDL.Func([IDL.Nat], [], []),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getUserProfile' : IDL.Func(
@@ -85,7 +104,16 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+  'listCommentsForQuestion' : IDL.Func(
+      [IDL.Nat],
+      [IDL.Vec(Comment)],
+      ['query'],
+    ),
+  'listSuggestions' : IDL.Func([], [SuggestionsResponse], ['query']),
+  'postComment' : IDL.Func([IDL.Nat, IDL.Text], [IDL.Nat], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [UserProfile], []),
+  'setYouTubeVerified' : IDL.Func([], [], []),
+  'submitSuggestion' : IDL.Func([IDL.Text, IDL.Text], [IDL.Nat], []),
 });
 
 export const idlInitArgs = [];
@@ -129,6 +157,23 @@ export const idlFactory = ({ IDL }) => {
     'testAttempts' : IDL.Vec(TestAttempt),
     'blockTimestamp' : IDL.Opt(Time),
   });
+  const Comment = IDL.Record({
+    'id' : IDL.Nat,
+    'userId' : IDL.Principal,
+    'text' : IDL.Text,
+    'timestamp' : Time,
+    'questionId' : IDL.Nat,
+  });
+  const Suggestion = IDL.Record({
+    'id' : IDL.Nat,
+    'feedback' : IDL.Text,
+    'author' : IDL.Text,
+    'timestamp' : Time,
+  });
+  const SuggestionsResponse = IDL.Record({
+    'suggestions' : IDL.Vec(Suggestion),
+    'count' : IDL.Nat,
+  });
   
   return IDL.Service({
     '_caffeineStorageBlobIsLive' : IDL.Func(
@@ -159,7 +204,9 @@ export const idlFactory = ({ IDL }) => {
     '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+    'deleteComment' : IDL.Func([IDL.Nat], [], []),
     'deleteQuestion' : IDL.Func([IDL.Nat], [], []),
+    'deleteSuggestion' : IDL.Func([IDL.Nat], [], []),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getUserProfile' : IDL.Func(
@@ -168,7 +215,16 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+    'listCommentsForQuestion' : IDL.Func(
+        [IDL.Nat],
+        [IDL.Vec(Comment)],
+        ['query'],
+      ),
+    'listSuggestions' : IDL.Func([], [SuggestionsResponse], ['query']),
+    'postComment' : IDL.Func([IDL.Nat, IDL.Text], [IDL.Nat], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [UserProfile], []),
+    'setYouTubeVerified' : IDL.Func([], [], []),
+    'submitSuggestion' : IDL.Func([IDL.Text, IDL.Text], [IDL.Nat], []),
   });
 };
 

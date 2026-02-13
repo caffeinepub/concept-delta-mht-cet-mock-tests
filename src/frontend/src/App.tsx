@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard';
 import AboutPage from './pages/AboutPage';
 import ProfileSetup from './components/ProfileSetup';
 import ViewActivationOverlay from './components/ViewActivationOverlay';
+import AppErrorBoundary from './components/AppErrorBoundary';
 import { useState, useEffect, useRef } from 'react';
 import { Toaster } from '@/components/ui/sonner';
 import { toast } from 'sonner';
@@ -122,6 +123,12 @@ function AppContent() {
     saveView(view);
   };
 
+  const handleNavigateToLanding = () => {
+    cancelActivation(currentView);
+    setCurrentView('landing');
+    saveView('landing');
+  };
+
   if (showProfileSetup) {
     return (
       <>
@@ -132,7 +139,7 @@ function AppContent() {
   }
 
   return (
-    <>
+    <AppErrorBoundary onNavigateHome={handleNavigateToLanding}>
       <ViewActivationOverlay currentView={currentView} />
       {currentView === 'landing' && (
         <LandingPage onNavigate={handleNavigate} />
@@ -144,7 +151,7 @@ function AppContent() {
         <Dashboard onNavigate={handleNavigate} onStartTest={() => {}} />
       )}
       <Toaster />
-    </>
+    </AppErrorBoundary>
   );
 }
 

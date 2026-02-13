@@ -1,70 +1,56 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-10T19:24:36.389Z",
+  "generatedAt": "2026-02-13T16:32:59.765Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
-    "implemented": 3,
+    "total": 4,
+    "implemented": 0,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Prevent ViewActivationOverlay from appearing (or remaining active) on non-target views so the Landing page is always visible and clickable. The overlay must only render when the currently-rendered view matches the activation target (e.g., only show for dashboard activation while the Dashboard view is actually mounted).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/ViewActivationOverlay.tsx",
-          "frontend/src/App.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/ViewActivationOverlay.tsx",
-          "frontend/src/App.tsx"
-        ]
+        "summary": "Implement a backend API `getCallerUserRole()` that returns the caller role as a text value compatible with the frontend checks (e.g., \"admin\", \"user\", \"guest\"). Use the existing authorization/access-control state already included in `backend/main.mo` (MixinAuthorization + AccessControl).",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       },
       {
         "id": "REQ-2",
-        "summary": "Harden the view-activation lifecycle so activation always finishes reliably: ensure activation is cancelled on any navigation away from the target view and finished when the target view has rendered and its initial critical loading has settled (including Dashboard loading states).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/App.tsx",
-          "frontend/src/pages/Dashboard.tsx",
-          "frontend/src/components/Header.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/App.tsx",
-          "frontend/src/pages/Dashboard.tsx",
-          "frontend/src/components/Header.tsx"
-        ]
+        "summary": "Implement a backend API for YouTube subscription verification that the frontend mutation `useSetYouTubeVerified` can call (e.g., `setYouTubeVerified()`), which updates the caller's `UserProfile` by setting `isYouTubeVerified = true` and setting `youtubeVerificationTimestamp = ?Time.now()` without requiring the frontend to pass any parameters.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       },
       {
         "id": "REQ-3",
-        "summary": "Add defensive safeguards against “stuck” activation state: ensure any safety timeout cleanup cannot leave a stale activation that blocks interaction, and add minimal instrumentation (console debug logs guarded by a development check) to trace start/finish/cancel transitions during development builds.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/contexts/ViewActivationContext.tsx",
-          "frontend/src/contexts/ViewActivationContext.tsx",
-          "frontend/src/App.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/contexts/ViewActivationContext.tsx",
-          "frontend/src/contexts/ViewActivationContext.tsx",
-          "frontend/src/App.tsx"
-        ]
+        "summary": "Add backend suggestion APIs backed by the existing `suggestions` map in `backend/main.mo`: (1) submit a suggestion (author text + feedback text, assign incremental id + timestamp), (2) list all suggestions with total count, and (3) delete a suggestion by id (admin-only). Ensure the return shape for listing matches the existing backend type `SuggestionsResponse` ({ suggestions : [Suggestion]; count : Nat }).",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-4",
+        "summary": "Add backend comment APIs backed by the existing `comments` map in `backend/main.mo`: (1) list comments for a given `questionId`, (2) post a comment for a question (text, assigns incremental id, stores caller principal as userId, sets timestamp), and (3) delete a comment by id. Deletion must be allowed for admins; non-admin deletion must be rejected. Use the existing public `Comment` type in `backend/main.mo` for compatibility.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/App.tsx",
-    "frontend/src/components/Header.tsx",
-    "frontend/src/components/ViewActivationOverlay.tsx",
-    "frontend/src/contexts/ViewActivationContext.tsx",
-    "frontend/src/pages/Dashboard.tsx",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useQueries.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

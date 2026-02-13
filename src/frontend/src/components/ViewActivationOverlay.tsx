@@ -12,6 +12,7 @@ export default function ViewActivationOverlay({ currentView }: ViewActivationOve
   // 1. Activation is in progress
   // 2. Target view is set
   // 3. Current view matches the target view
+  // Guard against inconsistent state
   if (!isActivating || !targetView || currentView !== targetView) {
     return null;
   }

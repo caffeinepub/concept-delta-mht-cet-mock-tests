@@ -8,6 +8,23 @@ export interface None {
 }
 export type Option<T> = Some<T> | None;
 export type Time = bigint;
+export interface SuggestionsResponse {
+    suggestions: Array<Suggestion>;
+    count: bigint;
+}
+export interface Comment {
+    id: bigint;
+    userId: Principal;
+    text: string;
+    timestamp: Time;
+    questionId: bigint;
+}
+export interface Suggestion {
+    id: bigint;
+    feedback: string;
+    author: string;
+    timestamp: Time;
+}
 export interface UserProfile {
     id: Principal;
     isBlocked: boolean;
@@ -36,10 +53,17 @@ export enum UserRole {
 }
 export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    deleteComment(id: bigint): Promise<void>;
     deleteQuestion(questionId: bigint): Promise<void>;
+    deleteSuggestion(id: bigint): Promise<void>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
+    listCommentsForQuestion(questionId: bigint): Promise<Array<Comment>>;
+    listSuggestions(): Promise<SuggestionsResponse>;
+    postComment(questionId: bigint, text: string): Promise<bigint>;
     saveCallerUserProfile(profile: UserProfile): Promise<UserProfile>;
+    setYouTubeVerified(): Promise<void>;
+    submitSuggestion(author: string, feedback: string): Promise<bigint>;
 }

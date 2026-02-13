@@ -10,6 +10,23 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export interface Comment {
+  'id' : bigint,
+  'userId' : Principal,
+  'text' : string,
+  'timestamp' : Time,
+  'questionId' : bigint,
+}
+export interface Suggestion {
+  'id' : bigint,
+  'feedback' : string,
+  'author' : string,
+  'timestamp' : Time,
+}
+export interface SuggestionsResponse {
+  'suggestions' : Array<Suggestion>,
+  'count' : bigint,
+}
 export interface TestAttempt {
   'userId' : Principal,
   'answers' : Array<bigint>,
@@ -64,12 +81,19 @@ export interface _SERVICE {
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'deleteComment' : ActorMethod<[bigint], undefined>,
   'deleteQuestion' : ActorMethod<[bigint], undefined>,
+  'deleteSuggestion' : ActorMethod<[bigint], undefined>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
+  'listCommentsForQuestion' : ActorMethod<[bigint], Array<Comment>>,
+  'listSuggestions' : ActorMethod<[], SuggestionsResponse>,
+  'postComment' : ActorMethod<[bigint, string], bigint>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], UserProfile>,
+  'setYouTubeVerified' : ActorMethod<[], undefined>,
+  'submitSuggestion' : ActorMethod<[string, string], bigint>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
 import type { UserProfile, Question, TestConfig, TestAttempt, TestStatus, TestType, SectionType, Comment, LeaderboardEntry, OverallLeaderboardEntry } from '../types/local';
-import type { UserProfile as BackendUserProfile } from '../backend';
+import type { UserProfile as BackendUserProfile, Comment as BackendComment, Suggestion } from '../backend';
 import { toast } from 'sonner';
 
 // Helper function to convert backend UserProfile to local UserProfile
@@ -45,16 +45,32 @@ function convertLocalProfileToBackend(localProfile: Omit<UserProfile, 'id' | 'te
   };
 }
 
+// Helper function to convert backend Comment to local Comment
+function convertBackendCommentToLocal(backendComment: BackendComment): Comment {
+  return {
+    id: backendComment.id,
+    questionId: backendComment.questionId,
+    userId: backendComment.userId.toString(),
+    text: backendComment.text,
+    timestamp: backendComment.timestamp,
+  };
+}
+
 export function useGetCallerUserProfile() {
   const { actor, isFetching } = useActor();
 
   const query = useQuery<UserProfile | null>({
     queryKey: ['currentUserProfile'],
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      const result = await actor.getCallerUserProfile();
-      if (!result) return null;
-      return convertBackendProfileToLocal(result);
+      if (!actor) return null;
+      try {
+        const result = await actor.getCallerUserProfile();
+        if (!result) return null;
+        return convertBackendProfileToLocal(result);
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
+        throw error;
+      }
     },
     enabled: !!actor && !isFetching,
     retry: false,
@@ -97,11 +113,17 @@ export function useGetCallerRole() {
   return useQuery({
     queryKey: ['callerRole'],
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.getCallerUserRole();
+      if (!actor) return 'guest';
+      try {
+        return await actor.getCallerUserRole();
+      } catch (error) {
+        console.error('Error fetching user role:', error);
+        return 'guest';
+      }
     },
     enabled: !!actor && !isFetching,
     staleTime: 5 * 60 * 1000,
+    retry: false,
   });
 }
 
@@ -111,12 +133,18 @@ export function useGetTestConfigsWithStatus() {
   const query = useQuery<Array<[TestConfig, TestStatus]>>({
     queryKey: ['testConfigsWithStatus'],
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      // Backend method not available - return empty array
-      return [];
+      if (!actor) return [];
+      try {
+        // Backend method not available - return empty array
+        return [];
+      } catch (error) {
+        console.error('Error fetching test configs:', error);
+        return [];
+      }
     },
     enabled: !!actor && !actorFetching,
     staleTime: 30000,
+    retry: false,
   });
 
   return {
@@ -133,10 +161,16 @@ export function useGetOrderedTestConfigs() {
   return useQuery<TestConfig[]>({
     queryKey: ['orderedTestConfigs'],
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return [];
+      if (!actor) return [];
+      try {
+        return [];
+      } catch (error) {
+        console.error('Error fetching ordered test configs:', error);
+        return [];
+      }
     },
     enabled: !!actor && !isFetching,
+    retry: false,
   });
 }
 
@@ -153,6 +187,9 @@ export function useCreateTestConfig() {
       queryClient.invalidateQueries({ queryKey: ['testConfigsWithStatus'] });
       queryClient.invalidateQueries({ queryKey: ['orderedTestConfigs'] });
       queryClient.invalidateQueries({ queryKey: ['testConfigCount'] });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to create test config');
     },
   });
 }
@@ -171,6 +208,9 @@ export function useDeleteTestConfig() {
       queryClient.invalidateQueries({ queryKey: ['orderedTestConfigs'] });
       queryClient.invalidateQueries({ queryKey: ['testConfigCount'] });
     },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to delete test config');
+    },
   });
 }
 
@@ -186,6 +226,9 @@ export function useReorderTestConfigs() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orderedTestConfigs'] });
       queryClient.invalidateQueries({ queryKey: ['testConfigsWithStatus'] });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to reorder test configs');
     },
   });
 }
@@ -203,6 +246,9 @@ export function usePublishTestConfig() {
       queryClient.invalidateQueries({ queryKey: ['testConfigsWithStatus'] });
       queryClient.invalidateQueries({ queryKey: ['orderedTestConfigs'] });
     },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to publish test config');
+    },
   });
 }
 
@@ -219,6 +265,9 @@ export function useStopTestConfig() {
       queryClient.invalidateQueries({ queryKey: ['testConfigsWithStatus'] });
       queryClient.invalidateQueries({ queryKey: ['orderedTestConfigs'] });
     },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to stop test config');
+    },
   });
 }
 
@@ -228,10 +277,16 @@ export function useGetQuestionsBySubject(subject: string) {
   return useQuery({
     queryKey: ['questionsBySubject', subject],
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return [];
+      if (!actor) return [];
+      try {
+        return [];
+      } catch (error) {
+        console.error('Error fetching questions by subject:', error);
+        return [];
+      }
     },
     enabled: !!actor && !isFetching && !!subject,
+    retry: false,
   });
 }
 
@@ -248,6 +303,9 @@ export function useAddQuestion() {
       queryClient.invalidateQueries({ queryKey: ['questionsBySubject'] });
       queryClient.invalidateQueries({ queryKey: ['questionCount'] });
     },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to add question');
+    },
   });
 }
 
@@ -258,166 +316,54 @@ export function useDeleteQuestion() {
   return useMutation({
     mutationFn: async (questionId: bigint) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.deleteQuestion(questionId);
+      await actor.deleteQuestion(questionId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['questionsBySubject'] });
       queryClient.invalidateQueries({ queryKey: ['questionCount'] });
-      queryClient.invalidateQueries({ queryKey: ['testConfigsWithStatus'] });
-      queryClient.invalidateQueries({ queryKey: ['orderedTestConfigs'] });
+      toast.success('Question deleted successfully');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to delete question');
     },
   });
 }
 
-export function useGetQuestionsWithAnswersByTestConfig(testId: bigint | null) {
-  const { actor, isFetching } = useActor();
-
-  return useQuery({
-    queryKey: ['questionsWithAnswers', testId?.toString()],
-    queryFn: async () => {
-      if (!actor || !testId) throw new Error('Actor or testId not available');
-      return [];
-    },
-    enabled: !!actor && !isFetching && testId !== null,
-  });
-}
-
-export function useGetQuestionCount() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery({
-    queryKey: ['questionCount'],
-    queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return BigInt(0);
-    },
-    enabled: !!actor && !isFetching,
-  });
-}
-
-export function useGetTestConfigCount() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery({
-    queryKey: ['testConfigCount'],
-    queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return BigInt(0);
-    },
-    enabled: !!actor && !isFetching,
-  });
-}
-
-export function useGetUserCount() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery({
-    queryKey: ['userCount'],
-    queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return BigInt(0);
-    },
-    enabled: !!actor && !isFetching,
-  });
-}
-
-export function useGetSystemMetrics() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery({
-    queryKey: ['systemMetrics'],
-    queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return null;
-    },
-    enabled: !!actor && !isFetching,
-    refetchInterval: 30000,
-  });
-}
-
-export function useGetActiveSessions() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery({
-    queryKey: ['activeSessions'],
-    queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return [];
-    },
-    enabled: !!actor && !isFetching,
-    refetchInterval: 10000,
-  });
-}
-
-export function useCleanupStaleSessions() {
+export function useSubmitSuggestion() {
   const { actor } = useActor();
-  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (inactiveMinutes: bigint) => {
+    mutationFn: async (params: { author: string; feedback: string }) => {
       if (!actor) throw new Error('Actor not available');
-      return BigInt(0);
+      const suggestionId = await actor.submitSuggestion(params.author, params.feedback);
+      return suggestionId;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['activeSessions'] });
-      queryClient.invalidateQueries({ queryKey: ['systemMetrics'] });
+      toast.success('Suggestion submitted successfully');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to submit suggestion');
     },
   });
 }
 
-export function useGetAllUsersWithTestAttempts() {
+export function useGetCommentsByQuestion(questionId: bigint) {
   const { actor, isFetching } = useActor();
 
-  return useQuery({
-    queryKey: ['allUsersWithTestAttempts'],
+  return useQuery<Comment[]>({
+    queryKey: ['comments', questionId.toString()],
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return [];
+      if (!actor) return [];
+      try {
+        const backendComments = await actor.listCommentsForQuestion(questionId);
+        return backendComments.map(convertBackendCommentToLocal);
+      } catch (error) {
+        console.error('Error fetching comments:', error);
+        return [];
+      }
     },
     enabled: !!actor && !isFetching,
-  });
-}
-
-export function useBlockUser() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (userId: string) => {
-      if (!actor) throw new Error('Actor not available');
-      throw new Error('Method not implemented');
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['allUsersWithTestAttempts'] });
-    },
-  });
-}
-
-export function useUnblockUser() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (userId: string) => {
-      if (!actor) throw new Error('Actor not available');
-      throw new Error('Method not implemented');
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['allUsersWithTestAttempts'] });
-    },
-  });
-}
-
-export function useGetCommentsByQuestion(questionId: bigint | null) {
-  const { actor, isFetching } = useActor();
-
-  return useQuery({
-    queryKey: ['comments', questionId?.toString()],
-    queryFn: async () => {
-      if (!actor || questionId === null) return [];
-      return [];
-    },
-    enabled: !!actor && !isFetching && questionId !== null,
+    retry: false,
   });
 }
 
@@ -428,10 +374,15 @@ export function usePostComment() {
   return useMutation({
     mutationFn: async (params: { questionId: bigint; text: string }) => {
       if (!actor) throw new Error('Actor not available');
-      throw new Error('Method not implemented');
+      const commentId = await actor.postComment(params.questionId, params.text);
+      return commentId;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['comments', variables.questionId.toString()] });
+      toast.success('Comment posted successfully');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to post comment');
     },
   });
 }
@@ -443,67 +394,73 @@ export function useDeleteComment() {
   return useMutation({
     mutationFn: async (params: { commentId: bigint; questionId: bigint }) => {
       if (!actor) throw new Error('Actor not available');
-      throw new Error('Method not implemented');
+      await actor.deleteComment(params.commentId);
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['comments', variables.questionId.toString()] });
+      toast.success('Comment deleted successfully');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to delete comment');
     },
   });
 }
 
-export function useGetLeaderboard(testId: bigint | null) {
+export function useGetLeaderboard(testId: bigint) {
   const { actor, isFetching } = useActor();
 
-  return useQuery({
-    queryKey: ['leaderboard', testId?.toString()],
+  return useQuery<LeaderboardEntry[]>({
+    queryKey: ['leaderboard', testId.toString()],
     queryFn: async () => {
-      if (!actor || testId === null) return [];
-      return [];
+      if (!actor) return [];
+      try {
+        return [];
+      } catch (error) {
+        console.error('Error fetching leaderboard:', error);
+        return [];
+      }
     },
-    enabled: !!actor && !isFetching && testId !== null,
-    refetchInterval: 20000,
+    enabled: !!actor && !isFetching,
+    retry: false,
   });
 }
 
 export function useGetOverallLeaderboard() {
   const { actor, isFetching } = useActor();
 
-  return useQuery({
+  return useQuery<OverallLeaderboardEntry[]>({
     queryKey: ['overallLeaderboard'],
     queryFn: async () => {
       if (!actor) return [];
-      return [];
+      try {
+        return [];
+      } catch (error) {
+        console.error('Error fetching overall leaderboard:', error);
+        return [];
+      }
     },
     enabled: !!actor && !isFetching,
-    refetchInterval: 20000,
-  });
-}
-
-export function useSubmitSuggestion() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (params: { author: string; feedback: string }) => {
-      if (!actor) throw new Error('Actor not available');
-      throw new Error('Method not implemented');
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['allSuggestions'] });
-    },
+    retry: false,
   });
 }
 
 export function useGetAllSuggestions() {
   const { actor, isFetching } = useActor();
 
-  return useQuery({
+  return useQuery<{ suggestions: Suggestion[]; count: bigint }>({
     queryKey: ['allSuggestions'],
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return { suggestions: [], count: BigInt(0) };
+      if (!actor) return { suggestions: [], count: BigInt(0) };
+      try {
+        const result = await actor.listSuggestions();
+        return result;
+      } catch (error) {
+        console.error('Error fetching suggestions:', error);
+        return { suggestions: [], count: BigInt(0) };
+      }
     },
     enabled: !!actor && !isFetching,
+    retry: false,
   });
 }
 
@@ -514,39 +471,33 @@ export function useDeleteSuggestion() {
   return useMutation({
     mutationFn: async (suggestionId: bigint) => {
       if (!actor) throw new Error('Actor not available');
-      throw new Error('Method not implemented');
+      await actor.deleteSuggestion(suggestionId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allSuggestions'] });
+      toast.success('Suggestion deleted successfully');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to delete suggestion');
     },
   });
 }
 
-// Stub exports for missing methods
-export function useGetQuestionsByTestConfig() {
-  return useQuery({ queryKey: ['stub'], queryFn: async () => [], enabled: false });
-}
-
-export function useSubmitTestAttempt() {
-  return useMutation({ mutationFn: async () => { throw new Error('Not implemented'); } });
-}
-
-export function useStartTestSession() {
-  return useMutation({ mutationFn: async () => { throw new Error('Not implemented'); } });
-}
-
-export function useUpdateSessionActivity() {
-  return useMutation({ mutationFn: async () => { throw new Error('Not implemented'); } });
-}
-
-export function useUpdateCallerMobileNumber() {
-  return useMutation({ mutationFn: async () => { throw new Error('Not implemented'); } });
-}
-
-export function useGetTestConfig() {
-  return useQuery({ queryKey: ['stub'], queryFn: async () => null, enabled: false });
-}
-
 export function useSetYouTubeVerified() {
-  return useMutation({ mutationFn: async () => { throw new Error('Not implemented'); } });
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      await actor.setYouTubeVerified();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+      toast.success('YouTube subscription verified successfully');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to verify YouTube subscription');
+    },
+  });
 }

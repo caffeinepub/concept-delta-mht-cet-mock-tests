@@ -37,8 +37,9 @@ export default function SuggestionSection({ userName }: SuggestionSectionProps) 
       toast.success('Thank you for your feedback!');
       setFeedback('');
     } catch (error: any) {
-      console.error('Error submitting feedback:', error);
-      toast.error(error.message || 'Failed to submit feedback. Please try again.');
+      // Error is already logged and toasted by the mutation's onError
+      // Just ensure UI remains responsive
+      console.error('Suggestion submission failed:', error);
     }
   };
 

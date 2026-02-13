@@ -1,70 +1,64 @@
-// Flicker-free role hook with per-principal bootstrap
-// Returns bootstrapped role instantly, then reconciles with backend
-
-import { useEffect, useState } from 'react';
-import { useInternetIdentity } from './useInternetIdentity';
+import { useState, useEffect } from 'react';
 import { useGetCallerRole } from './useQueries';
+import { useInternetIdentity } from './useInternetIdentity';
 import { UserRole } from '../backend';
-import { saveRoleForPrincipal, getRoleForPrincipal } from '../utils/roleBootstrap';
+import { getRoleForPrincipal, saveRoleForPrincipal } from '../utils/roleBootstrap';
 
-export interface BootstrappedRoleState {
-  role: UserRole;
-  isRoleKnown: boolean;
-  isAdmin: boolean;
-  roleLoading: boolean;
-}
-
-export function useBootstrappedCallerRole(): BootstrappedRoleState {
+export function useBootstrappedCallerRole() {
   const { identity } = useInternetIdentity();
-  const { data: backendRole, isLoading: backendLoading, isFetched } = useGetCallerRole();
-  
-  const principalString = identity?.getPrincipal().toString() || '';
-  
-  // Bootstrap: load saved role synchronously on mount
-  const [bootstrappedRole, setBootstrappedRole] = useState<UserRole | null>(() => {
-    if (!principalString) return null;
-    return getRoleForPrincipal(principalString);
-  });
+  const { data: backendRole, isLoading, isFetched } = useGetCallerRole();
+  const [bootstrappedRole, setBootstrappedRole] = useState<UserRole | null>(null);
 
-  // Update bootstrap when principal changes
+  // Load bootstrapped role on mount
   useEffect(() => {
-    if (principalString) {
-      const saved = getRoleForPrincipal(principalString);
-      setBootstrappedRole(saved);
+    if (identity) {
+      const principalString = identity.getPrincipal().toString();
+      const savedRole = getRoleForPrincipal(principalString);
+      if (savedRole) {
+        setBootstrappedRole(savedRole);
+      }
     } else {
       setBootstrappedRole(null);
     }
-  }, [principalString]);
+  }, [identity]);
 
-  // Reconcile: when backend role arrives, persist it and update if different
+  // Sync backend role with bootstrap when available
   useEffect(() => {
-    if (principalString && backendRole && isFetched) {
-      // Persist the backend role
-      saveRoleForPrincipal(principalString, backendRole);
+    if (isFetched && backendRole && identity) {
+      const principalString = identity.getPrincipal().toString();
       
-      // If bootstrap was different, update it
-      if (bootstrappedRole !== backendRole) {
-        setBootstrappedRole(backendRole);
+      // Convert 'guest' string to UserRole.guest enum
+      const roleToSave: UserRole = backendRole === 'guest' 
+        ? UserRole.guest 
+        : backendRole as UserRole;
+      
+      saveRoleForPrincipal(principalString, roleToSave);
+
+      // Only update state if different
+      if (bootstrappedRole !== roleToSave) {
+        setBootstrappedRole(roleToSave);
       }
     }
-  }, [principalString, backendRole, isFetched, bootstrappedRole]);
+  }, [backendRole, isFetched, identity, bootstrappedRole]);
 
-  // Determine current role: use backend if available, otherwise bootstrap, otherwise guest
-  const currentRole: UserRole = backendRole || bootstrappedRole || ('guest' as UserRole);
-  
-  // Role is known if we have backend data OR a bootstrap
-  const isRoleKnown = isFetched || bootstrappedRole !== null;
-  
-  // Admin status
-  const isAdmin = currentRole === 'admin';
-  
-  // Loading state: only true if we're waiting for backend AND have no bootstrap
-  const roleLoading = backendLoading && bootstrappedRole === null;
+  // Determine current role with proper type handling
+  const currentRole: UserRole = (() => {
+    if (backendRole && backendRole !== 'guest') {
+      return backendRole as UserRole;
+    }
+    if (bootstrappedRole) {
+      return bootstrappedRole;
+    }
+    return UserRole.guest;
+  })();
+
+  const isAdmin = currentRole === UserRole.admin;
+  const isRoleKnown = !!bootstrappedRole || isFetched;
 
   return {
     role: currentRole,
-    isRoleKnown,
     isAdmin,
-    roleLoading,
+    isRoleKnown,
+    isLoading,
   };
 }
