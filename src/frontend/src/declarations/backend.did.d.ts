@@ -17,6 +17,9 @@ export interface Comment {
   'timestamp' : Time,
   'questionId' : bigint,
 }
+export type SectionType = { 'full' : null } |
+  { 'physicsChemistry' : null } |
+  { 'mathematics' : null };
 export interface Suggestion {
   'id' : bigint,
   'feedback' : string,
@@ -31,10 +34,40 @@ export interface TestAttempt {
   'userId' : Principal,
   'answers' : Array<bigint>,
   'submittedAt' : Time,
-  'score' : number,
+  'score' : bigint,
   'timeTaken' : bigint,
   'testId' : bigint,
 }
+export interface TestConfig {
+  'id' : bigint,
+  'startTime' : [] | [Time],
+  'isPublished' : boolean,
+  'subject' : string,
+  'endTime' : [] | [Time],
+  'sectionType' : [] | [SectionType],
+  'isStopped' : boolean,
+  'name' : string,
+  'createdAt' : Time,
+  'createdBy' : Principal,
+  'testType' : TestType,
+  'updatedAt' : [] | [Time],
+  'totalQuestions' : bigint,
+  'durationMinutes' : bigint,
+  'chapters' : Array<string>,
+  'markingScheme' : {
+    'incorrectPenalty' : bigint,
+    'correctMarks' : bigint,
+    'penaltyOption' : [] | [string],
+  },
+  'questions' : Array<bigint>,
+}
+export type TestStatus = { 'scheduled' : null } |
+  { 'live' : null } |
+  { 'ended' : null } |
+  { 'finished' : null };
+export type TestType = { 'class11' : null } |
+  { 'class12' : null } |
+  { 'completeSyllabus' : null };
 export type Time = bigint;
 export interface UserProfile {
   'id' : Principal,
@@ -82,10 +115,19 @@ export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'deleteComment' : ActorMethod<[bigint], undefined>,
+  'deleteExpiredUnpublishedTests' : ActorMethod<[], undefined>,
   'deleteQuestion' : ActorMethod<[bigint], undefined>,
   'deleteSuggestion' : ActorMethod<[bigint], undefined>,
+  'getAllTestConfigsWithStatus' : ActorMethod<
+    [],
+    Array<[TestConfig, TestStatus]>
+  >,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
+  'getCurrentlyLiveTestsWithStatus' : ActorMethod<
+    [],
+    Array<[TestConfig, TestStatus]>
+  >,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'listCommentsForQuestion' : ActorMethod<[bigint], Array<Comment>>,

@@ -1,12 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Add the missing backend APIs needed for role checks, YouTube verification, suggestions, and comments.
+**Goal:** Restore Admin Panel data loading by adding backend queries for Question Gallery (questions by subject) and ensuring Suggestions moderation uses the real backend listSuggestions() API and refreshes correctly after deletes.
 
 **Planned changes:**
-- Add `getCallerUserRole()` to return a stable role string for the caller (`"admin"`, `"user"`, or `"guest"`) using the existing authorization/access-control state in `backend/main.mo`.
-- Add `setYouTubeVerified()` to mark the caller’s existing `UserProfile` as YouTube-verified and store a verification timestamp.
-- Add suggestions APIs backed by the existing `suggestions` map: submit suggestion (with id + timestamp), list all suggestions (matching `SuggestionsResponse`), and delete suggestion by id (admin-only).
-- Add comments APIs backed by the existing `comments` map: list by `questionId`, post comment (with id + caller principal + timestamp), and delete comment by id (admin-only).
+- Add/restore backend query API to return all questions for a given subject (e.g., Physics/Chemistry/Mathematics) with fields required by the existing Question Gallery UI.
+- Ensure backend listSuggestions() remains callable and returns the existing frontend-compatible response shape (suggestions array + count).
+- Update the frontend React Query hook useGetQuestionsBySubject(subject) to call the new backend query and return fetched questions (using the existing stable query key pattern that includes subject).
+- Ensure Suggestions Moderation loads from backend via useGetAllSuggestions and refreshes after deletion via query invalidation; enforce admin-only deletion in the backend.
 
-**User-visible outcome:** The frontend can determine the caller’s role, users can mark their profile as YouTube-verified, authenticated users can submit suggestions, and comments can be listed/posted per question with admin-only deletion for suggestions and comments.
+**User-visible outcome:** In the Admin Panel, Question Gallery shows real questions when switching subjects, and Suggestions & Feedback displays stored suggestions and updates immediately after an admin deletes one (including the existing empty/error states when applicable).

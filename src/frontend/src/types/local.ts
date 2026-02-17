@@ -19,7 +19,7 @@ export interface TestAttempt {
   userId: string;
   testId: bigint;
   answers: bigint[];
-  score: number;
+  score: bigint;
   timeTaken: bigint;
   submittedAt: bigint;
 }
@@ -85,6 +85,7 @@ export interface TestConfig {
   markingScheme: {
     correctMarks: number;
     incorrectPenalty: number;
+    penaltyOption: string | null;
   };
   questions: bigint[];
   createdBy: string;

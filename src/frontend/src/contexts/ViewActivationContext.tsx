@@ -1,11 +1,11 @@
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
 
-type ActivationTarget = 'dashboard' | null;
+type ActivationTarget = 'dashboard' | 'admin' | null;
 
 interface ViewActivationContextType {
   isActivating: boolean;
   targetView: ActivationTarget;
-  startActivation: (target: 'dashboard', currentView?: string) => void;
+  startActivation: (target: 'dashboard' | 'admin', currentView?: string) => void;
   finishActivation: (currentView?: string) => void;
   cancelActivation: (currentView?: string) => void;
   isActivatingView: (view: string) => boolean;
@@ -38,7 +38,7 @@ export function ViewActivationProvider({ children }: { children: React.ReactNode
     };
   }, []);
 
-  const startActivation = useCallback((target: 'dashboard', currentView?: string) => {
+  const startActivation = useCallback((target: 'dashboard' | 'admin', currentView?: string) => {
     logActivation('START', target, currentView);
 
     // Clear any existing timeout

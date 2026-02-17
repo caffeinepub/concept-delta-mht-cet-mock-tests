@@ -50,74 +50,88 @@ export default function Header({ onNavigate, currentView }: HeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 sm:h-16 items-center justify-between px-4 sm:px-6">
-        <div className="flex items-center gap-2 sm:gap-3">
+    <header className="app-header sticky top-0 z-50 w-full border-b shadow-sm">
+      <div className="container flex h-14 sm:h-16 items-center gap-2 px-4 sm:px-6">
+        {/* Left: Brand (shrink-0) */}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <img 
             src="/assets/generated/concept-delta-logo.dim_200x200.png" 
             alt="Concept Delta Logo" 
             className="h-8 w-8 sm:h-10 sm:w-10"
           />
           <div className="flex flex-col">
-            <span className="text-base sm:text-lg font-bold text-foreground leading-tight">
+            <span className="text-base sm:text-lg font-bold leading-tight whitespace-nowrap">
               Concept Delta
             </span>
-            <span className="text-[10px] sm:text-xs text-muted-foreground leading-tight">
+            <span className="text-[10px] sm:text-xs text-muted-foreground leading-tight whitespace-nowrap">
               MHT-CET Mock Tests
             </span>
           </div>
         </div>
 
-        <nav className="hidden md:flex items-center gap-1">
+        {/* Center: Desktop Nav (flex-1, min-w-0, hidden on mobile) */}
+        <nav className="hidden lg:flex items-center gap-1 flex-1 min-w-0 justify-center">
           <Button
             variant={currentView === 'landing' ? 'default' : 'ghost'}
             size="sm"
             onClick={() => onNavigate('landing')}
-            className="gap-2"
+            className="gap-2 whitespace-nowrap"
           >
             <Home className="h-4 w-4" />
-            Home
+            <span className="hidden xl:inline">Home</span>
           </Button>
           <Button
             variant={currentView === 'about' ? 'default' : 'ghost'}
             size="sm"
             onClick={() => onNavigate('about')}
-            className="gap-2"
+            className="gap-2 whitespace-nowrap"
           >
             <Info className="h-4 w-4" />
-            About
+            <span className="hidden xl:inline">About</span>
           </Button>
           {isAuthenticated && (
             <Button
               variant={currentView === 'dashboard' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => onNavigate('dashboard')}
-              className="gap-2"
+              className="gap-2 whitespace-nowrap"
             >
               <LayoutDashboard className="h-4 w-4" />
-              Dashboard
+              <span className="hidden xl:inline">Dashboard</span>
+            </Button>
+          )}
+          {isAuthenticated && isAdmin && (
+            <Button
+              variant={currentView === 'admin' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => onNavigate('admin')}
+              className="gap-2 whitespace-nowrap"
+            >
+              <Shield className="h-4 w-4" />
+              <span className="hidden xl:inline">Admin</span>
             </Button>
           )}
         </nav>
 
-        <div className="flex items-center gap-2 sm:gap-3">
+        {/* Right: Auth Controls (shrink-0) */}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-auto lg:ml-0">
           {isAuthenticated ? (
             <>
-              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary">
-                <User className="h-4 w-4" />
-                <span className="text-sm font-medium truncate max-w-[120px]">
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary max-w-[140px] lg:max-w-[180px]">
+                <User className="h-4 w-4 shrink-0" />
+                <span className="text-sm font-medium truncate">
                   {userProfile?.fullName || 'User'}
                 </span>
-                {isAdmin && <Shield className="h-4 w-4 text-primary" />}
+                {isAdmin && <Shield className="h-4 w-4 shrink-0 text-primary" />}
               </div>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleLogout}
-                className="hidden md:flex gap-2"
+                className="hidden lg:flex gap-2 whitespace-nowrap"
               >
                 <LogOut className="h-4 w-4" />
-                Logout
+                <span className="hidden xl:inline">Logout</span>
               </Button>
             </>
           ) : (
@@ -126,19 +140,20 @@ export default function Header({ onNavigate, currentView }: HeaderProps) {
               size="sm"
               onClick={handleLogin}
               disabled={isLoggingIn}
-              className="hidden md:flex"
+              className="hidden lg:flex whitespace-nowrap"
             >
               {isLoggingIn ? 'Logging in...' : 'Login'}
             </Button>
           )}
 
+          {/* Mobile Menu Trigger */}
           <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden">
+              <Button variant="ghost" size="icon" className="lg:hidden shrink-0">
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[280px] sm:w-[320px]">
+            <SheetContent side="right" className="app-sheet-content w-[280px] sm:w-[320px]">
               <div className="flex flex-col gap-4 mt-8">
                 {isAuthenticated && (
                   <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-primary/10 text-primary">
@@ -182,6 +197,16 @@ export default function Header({ onNavigate, currentView }: HeaderProps) {
                     >
                       <LayoutDashboard className="h-5 w-5" />
                       Dashboard
+                    </Button>
+                  )}
+                  {isAuthenticated && isAdmin && (
+                    <Button
+                      variant={currentView === 'admin' ? 'default' : 'ghost'}
+                      className="justify-start gap-3"
+                      onClick={() => handleNavigation('admin')}
+                    >
+                      <Shield className="h-5 w-5" />
+                      Admin Panel
                     </Button>
                   )}
                 </nav>

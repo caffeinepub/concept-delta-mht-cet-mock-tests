@@ -5,7 +5,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { useGetAllSuggestions, useDeleteSuggestion } from '../hooks/useQueries';
 import { Loader2, Trash2, MessageSquare, AlertCircle } from 'lucide-react';
-import { toast } from 'sonner';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,45 +15,46 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import type { Suggestion } from '../backend';
 
 export default function SuggestionModerationPanel() {
-  const { data: suggestionsData, isLoading, isError } = useGetAllSuggestions();
-  const deleteSuggestion = useDeleteSuggestion();
+  const { data: suggestions = [], isLoading, isError, error, refetch } = useGetAllSuggestions();
+  const deleteMutation = useDeleteSuggestion();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [suggestionToDelete, setsuggestionToDelete] = useState<{ id: bigint; author: string } | null>(null);
+  const [selectedSuggestion, setSelectedSuggestion] = useState<Suggestion | null>(null);
 
-  const suggestions = suggestionsData?.suggestions || [];
-  const count = suggestionsData?.count || BigInt(0);
-
-  const handleDeleteClick = (id: bigint, author: string) => {
-    setsuggestionToDelete({ id, author });
+  const handleDeleteClick = (suggestion: Suggestion) => {
+    setSelectedSuggestion(suggestion);
     setDeleteDialogOpen(true);
   };
 
-  const confirmDelete = async () => {
-    if (!suggestionToDelete) return;
-
-    try {
-      await deleteSuggestion.mutateAsync(suggestionToDelete.id);
-      toast.success('Suggestion deleted successfully');
+  const handleDeleteConfirm = async () => {
+    if (selectedSuggestion) {
+      await deleteMutation.mutateAsync(selectedSuggestion.id);
       setDeleteDialogOpen(false);
-      setsuggestionToDelete(null);
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to delete suggestion');
+      setSelectedSuggestion(null);
     }
   };
 
   const formatTimestamp = (timestamp: bigint) => {
-    const date = new Date(Number(timestamp) / 1_000_000);
+    const date = new Date(Number(timestamp / 1_000_000n));
     return date.toLocaleString();
   };
 
   if (isLoading) {
     return (
-      <Card className="bg-card border-border">
-        <CardContent className="py-12 text-center">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-3 text-primary" />
-          <p className="text-sm text-muted-foreground">Loading suggestions...</p>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            Suggestions & Feedback
+          </CardTitle>
+          <CardDescription>Review and moderate user suggestions</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
         </CardContent>
       </Card>
     );
@@ -62,10 +62,24 @@ export default function SuggestionModerationPanel() {
 
   if (isError) {
     return (
-      <Card className="bg-card border-border">
-        <CardContent className="py-12 text-center">
-          <AlertCircle className="w-12 h-12 text-destructive mx-auto mb-3" />
-          <p className="text-sm text-muted-foreground">Failed to load suggestions</p>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            Suggestions & Feedback
+          </CardTitle>
+          <CardDescription>Review and moderate user suggestions</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center justify-center gap-4 py-8">
+            <AlertCircle className="h-12 w-12 text-destructive" />
+            <p className="text-sm text-muted-foreground text-center">
+              Failed to load suggestions: {error instanceof Error ? error.message : 'Unknown error'}
+            </p>
+            <Button onClick={() => refetch()} variant="outline" size="sm">
+              Try Again
+            </Button>
+          </div>
         </CardContent>
       </Card>
     );
@@ -73,60 +87,58 @@ export default function SuggestionModerationPanel() {
 
   return (
     <>
-      <Card className="bg-card border-border">
+      <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-lg sm:text-xl text-foreground flex items-center gap-2">
-                <MessageSquare className="w-5 h-5" />
-                Suggestions & Feedback
-              </CardTitle>
-              <CardDescription className="text-xs sm:text-sm text-muted-foreground">
-                Review and moderate user feedback
-              </CardDescription>
-            </div>
-            <Badge variant="outline" className="text-xs">
-              {Number(count)} Total
-            </Badge>
-          </div>
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            Suggestions & Feedback
+          </CardTitle>
+          <CardDescription>
+            Review and moderate user suggestions ({suggestions.length} total)
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {suggestions.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p>No suggestions submitted yet</p>
+            <div className="flex flex-col items-center justify-center gap-2 py-8 text-center">
+              <MessageSquare className="h-12 w-12 text-muted-foreground/50" />
+              <p className="text-sm text-muted-foreground">No suggestions submitted yet</p>
             </div>
           ) : (
             <ScrollArea className="h-[500px] pr-4">
-              <div className="space-y-3">
-                {suggestions.map((suggestion: any) => (
-                  <Card key={suggestion.id.toString()} className="bg-muted/30 border-border">
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1 min-w-0 space-y-2">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <Badge variant="secondary" className="text-xs">
-                              {suggestion.author}
-                            </Badge>
-                            <span className="text-xs text-muted-foreground">
-                              {formatTimestamp(suggestion.timestamp)}
-                            </span>
-                          </div>
-                          <p className="text-sm text-foreground whitespace-pre-wrap break-words">
-                            {suggestion.feedback}
-                          </p>
+              <div className="space-y-4">
+                {suggestions.map((suggestion) => (
+                  <div
+                    key={suggestion.id.toString()}
+                    className="rounded-lg border bg-card p-4 space-y-3"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="font-normal">
+                            {suggestion.author}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">
+                            {formatTimestamp(suggestion.timestamp)}
+                          </span>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteClick(suggestion.id, suggestion.author)}
-                          className="flex-shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                        <p className="text-sm leading-relaxed">{suggestion.feedback}</p>
                       </div>
-                    </CardContent>
-                  </Card>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDeleteClick(suggestion)}
+                        disabled={deleteMutation.isPending}
+                        className="shrink-0"
+                      >
+                        {deleteMutation.isPending &&
+                        selectedSuggestion?.id === suggestion.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
                 ))}
               </div>
             </ScrollArea>
@@ -139,18 +151,12 @@ export default function SuggestionModerationPanel() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Suggestion</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete the suggestion from "{suggestionToDelete?.author}"? This action cannot be undone.
+              Are you sure you want to delete this suggestion? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={confirmDelete} 
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={deleteSuggestion.isPending}
-            >
-              {deleteSuggestion.isPending ? 'Deleting...' : 'Delete'}
-            </AlertDialogAction>
+            <AlertDialogAction onClick={handleDeleteConfirm}>Delete</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

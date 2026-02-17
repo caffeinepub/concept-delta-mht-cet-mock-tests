@@ -1,57 +1,39 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Project focused on resolving deployment failures by incrementally adding missing backend APIs to match frontend expectations and deploying in small safe parts.",
-  "architectural_notes": [
-    "Implement backend in small incremental parts to avoid compiler/deployment failures; deploy after each part to validate.",
-    "Deployment failures are caused by frontend calling APIs not implemented in backend (backend currently has ~3 functions vs 30+ expected APIs)."
+  "summary": "New project",
+  "architectural_notes": [],
+  "known_issues": [],
+  "isFixRequest": false,
+  "existing_features": [
+    {
+      "id": "feature-wire-the-question-management-ui-to-real-backend-data-by-updating-the-react-query-hook-usegetquestionsbysubject-subject-to-call-the-new-backend-query-api-and-return-the-fetched-list-instead-of-an-empty-array-stub",
+      "title": "Wire the Question Management UI to real backend data by updating the React Query hook useGetQuestionsBySubject(subject) to call the new backend query API and return the fetched list instead of an empty array stub.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-suggestions-moderation-loads-and-updates-correctly-end-to-end-the-usegetallsuggestions-hook-fetches-from-backend-listsuggestions-and-after-deleting-a-suggestion-via-usedeletesuggestion-the-suggestions-list-refreshes-query-invalidation-and-the-ui-reflects-the-deletion",
+      "title": "Ensure Suggestions Moderation loads and updates correctly end-to-end: the useGetAllSuggestions hook fetches from backend listSuggestions(), and after deleting a suggestion via useDeleteSuggestion(), the suggestions list refreshes (query invalidation) and the UI reflects the deletion.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    }
   ],
-  "known_issues": [
-    "Deployment fails due to mismatch between frontend API calls and available backend endpoints."
-  ],
-  "isFixRequest": true,
-  "existing_features": [],
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Add missing backend APIs to match frontend calls (implement in small safe parts and deploy after each part)",
-      "reqIds": [],
-      "status": "in_progress"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Implement a backend API `getCallerUserRole()` that returns the caller role as a text value compatible with the frontend checks (e.g., \"admin\", \"user\", \"guest\"). Use the existing authorization/access-control state already included in `backend/main.mo` (MixinAuthorization + AccessControl).",
+      "summary": "Implement backend query APIs required for Admin Panel data loading: (1) list questions filtered by subject for the Question Gallery, and (2) ensure suggestions listing continues to work with the existing listSuggestions() response shape used by the frontend.",
       "reqIds": [
         "REQ-1"
       ],
       "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Implement a backend API for YouTube subscription verification that the frontend mutation `useSetYouTubeVerified` can call (e.g., `setYouTubeVerified()`), which updates the caller's `UserProfile` by setting `isYouTubeVerified = true` and setting `youtubeVerificationTimestamp = ?Time.now()` without requiring the frontend to pass any parameters.",
-      "reqIds": [
-        "REQ-2"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-4",
-      "summary": "Add backend suggestion APIs backed by the existing `suggestions` map in `backend/main.mo`: (1) submit a suggestion (author text + feedback text, assign incremental id + timestamp), (2) list all suggestions with total count, and (3) delete a suggestion by id (admin-only). Ensure the return shape for listing matches the existing backend type `SuggestionsResponse` ({ suggestions : [Suggestion]; count : Nat }).",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-5",
-      "summary": "Add backend comment APIs backed by the existing `comments` map in `backend/main.mo`: (1) list comments for a given `questionId`, (2) post a comment for a question (text, assigns incremental id, stores caller principal as userId, sets timestamp), and (3) delete a comment by id. Deletion must be allowed for admins; non-admin deletion must be rejected. Use the existing public `Comment` type in `backend/main.mo` for compatibility.",
-      "reqIds": [
-        "REQ-4"
-      ],
-      "status": "pending"
     }
   ],
-  "projectName": "Backend part 1: add missing role, YouTube verification, suggestions, and comments APIs",
+  "projectName": "Concept Delta",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

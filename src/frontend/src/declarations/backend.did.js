@@ -25,11 +25,50 @@ export const UserRole = IDL.Variant({
   'guest' : IDL.Null,
 });
 export const Time = IDL.Int;
+export const SectionType = IDL.Variant({
+  'full' : IDL.Null,
+  'physicsChemistry' : IDL.Null,
+  'mathematics' : IDL.Null,
+});
+export const TestType = IDL.Variant({
+  'class11' : IDL.Null,
+  'class12' : IDL.Null,
+  'completeSyllabus' : IDL.Null,
+});
+export const TestConfig = IDL.Record({
+  'id' : IDL.Nat,
+  'startTime' : IDL.Opt(Time),
+  'isPublished' : IDL.Bool,
+  'subject' : IDL.Text,
+  'endTime' : IDL.Opt(Time),
+  'sectionType' : IDL.Opt(SectionType),
+  'isStopped' : IDL.Bool,
+  'name' : IDL.Text,
+  'createdAt' : Time,
+  'createdBy' : IDL.Principal,
+  'testType' : TestType,
+  'updatedAt' : IDL.Opt(Time),
+  'totalQuestions' : IDL.Nat,
+  'durationMinutes' : IDL.Nat,
+  'chapters' : IDL.Vec(IDL.Text),
+  'markingScheme' : IDL.Record({
+    'incorrectPenalty' : IDL.Nat,
+    'correctMarks' : IDL.Nat,
+    'penaltyOption' : IDL.Opt(IDL.Text),
+  }),
+  'questions' : IDL.Vec(IDL.Nat),
+});
+export const TestStatus = IDL.Variant({
+  'scheduled' : IDL.Null,
+  'live' : IDL.Null,
+  'ended' : IDL.Null,
+  'finished' : IDL.Null,
+});
 export const TestAttempt = IDL.Record({
   'userId' : IDL.Principal,
   'answers' : IDL.Vec(IDL.Nat),
   'submittedAt' : Time,
-  'score' : IDL.Float64,
+  'score' : IDL.Nat,
   'timeTaken' : IDL.Nat,
   'testId' : IDL.Nat,
 });
@@ -94,10 +133,21 @@ export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'deleteComment' : IDL.Func([IDL.Nat], [], []),
+  'deleteExpiredUnpublishedTests' : IDL.Func([], [], []),
   'deleteQuestion' : IDL.Func([IDL.Nat], [], []),
   'deleteSuggestion' : IDL.Func([IDL.Nat], [], []),
+  'getAllTestConfigsWithStatus' : IDL.Func(
+      [],
+      [IDL.Vec(IDL.Tuple(TestConfig, TestStatus))],
+      ['query'],
+    ),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+  'getCurrentlyLiveTestsWithStatus' : IDL.Func(
+      [],
+      [IDL.Vec(IDL.Tuple(TestConfig, TestStatus))],
+      ['query'],
+    ),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
       [IDL.Opt(UserProfile)],
@@ -136,11 +186,50 @@ export const idlFactory = ({ IDL }) => {
     'guest' : IDL.Null,
   });
   const Time = IDL.Int;
+  const SectionType = IDL.Variant({
+    'full' : IDL.Null,
+    'physicsChemistry' : IDL.Null,
+    'mathematics' : IDL.Null,
+  });
+  const TestType = IDL.Variant({
+    'class11' : IDL.Null,
+    'class12' : IDL.Null,
+    'completeSyllabus' : IDL.Null,
+  });
+  const TestConfig = IDL.Record({
+    'id' : IDL.Nat,
+    'startTime' : IDL.Opt(Time),
+    'isPublished' : IDL.Bool,
+    'subject' : IDL.Text,
+    'endTime' : IDL.Opt(Time),
+    'sectionType' : IDL.Opt(SectionType),
+    'isStopped' : IDL.Bool,
+    'name' : IDL.Text,
+    'createdAt' : Time,
+    'createdBy' : IDL.Principal,
+    'testType' : TestType,
+    'updatedAt' : IDL.Opt(Time),
+    'totalQuestions' : IDL.Nat,
+    'durationMinutes' : IDL.Nat,
+    'chapters' : IDL.Vec(IDL.Text),
+    'markingScheme' : IDL.Record({
+      'incorrectPenalty' : IDL.Nat,
+      'correctMarks' : IDL.Nat,
+      'penaltyOption' : IDL.Opt(IDL.Text),
+    }),
+    'questions' : IDL.Vec(IDL.Nat),
+  });
+  const TestStatus = IDL.Variant({
+    'scheduled' : IDL.Null,
+    'live' : IDL.Null,
+    'ended' : IDL.Null,
+    'finished' : IDL.Null,
+  });
   const TestAttempt = IDL.Record({
     'userId' : IDL.Principal,
     'answers' : IDL.Vec(IDL.Nat),
     'submittedAt' : Time,
-    'score' : IDL.Float64,
+    'score' : IDL.Nat,
     'timeTaken' : IDL.Nat,
     'testId' : IDL.Nat,
   });
@@ -205,10 +294,21 @@ export const idlFactory = ({ IDL }) => {
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'deleteComment' : IDL.Func([IDL.Nat], [], []),
+    'deleteExpiredUnpublishedTests' : IDL.Func([], [], []),
     'deleteQuestion' : IDL.Func([IDL.Nat], [], []),
     'deleteSuggestion' : IDL.Func([IDL.Nat], [], []),
+    'getAllTestConfigsWithStatus' : IDL.Func(
+        [],
+        [IDL.Vec(IDL.Tuple(TestConfig, TestStatus))],
+        ['query'],
+      ),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+    'getCurrentlyLiveTestsWithStatus' : IDL.Func(
+        [],
+        [IDL.Vec(IDL.Tuple(TestConfig, TestStatus))],
+        ['query'],
+      ),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
         [IDL.Opt(UserProfile)],

@@ -8,9 +8,38 @@ export interface None {
 }
 export type Option<T> = Some<T> | None;
 export type Time = bigint;
+export interface TestConfig {
+    id: bigint;
+    startTime?: Time;
+    isPublished: boolean;
+    subject: string;
+    endTime?: Time;
+    sectionType?: SectionType;
+    isStopped: boolean;
+    name: string;
+    createdAt: Time;
+    createdBy: Principal;
+    testType: TestType;
+    updatedAt?: Time;
+    totalQuestions: bigint;
+    durationMinutes: bigint;
+    chapters: Array<string>;
+    markingScheme: {
+        incorrectPenalty: bigint;
+        correctMarks: bigint;
+        penaltyOption?: string;
+    };
+    questions: Array<bigint>;
+}
 export interface SuggestionsResponse {
     suggestions: Array<Suggestion>;
     count: bigint;
+}
+export interface Suggestion {
+    id: bigint;
+    feedback: string;
+    author: string;
+    timestamp: Time;
 }
 export interface Comment {
     id: bigint;
@@ -19,11 +48,13 @@ export interface Comment {
     timestamp: Time;
     questionId: bigint;
 }
-export interface Suggestion {
-    id: bigint;
-    feedback: string;
-    author: string;
-    timestamp: Time;
+export interface TestAttempt {
+    userId: Principal;
+    answers: Array<bigint>;
+    submittedAt: Time;
+    score: bigint;
+    timeTaken: bigint;
+    testId: bigint;
 }
 export interface UserProfile {
     id: Principal;
@@ -38,13 +69,21 @@ export interface UserProfile {
     testAttempts: Array<TestAttempt>;
     blockTimestamp?: Time;
 }
-export interface TestAttempt {
-    userId: Principal;
-    answers: Array<bigint>;
-    submittedAt: Time;
-    score: number;
-    timeTaken: bigint;
-    testId: bigint;
+export enum SectionType {
+    full = "full",
+    physicsChemistry = "physicsChemistry",
+    mathematics = "mathematics"
+}
+export enum TestStatus {
+    scheduled = "scheduled",
+    live = "live",
+    ended = "ended",
+    finished = "finished"
+}
+export enum TestType {
+    class11 = "class11",
+    class12 = "class12",
+    completeSyllabus = "completeSyllabus"
 }
 export enum UserRole {
     admin = "admin",
@@ -54,10 +93,13 @@ export enum UserRole {
 export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     deleteComment(id: bigint): Promise<void>;
+    deleteExpiredUnpublishedTests(): Promise<void>;
     deleteQuestion(questionId: bigint): Promise<void>;
     deleteSuggestion(id: bigint): Promise<void>;
+    getAllTestConfigsWithStatus(): Promise<Array<[TestConfig, TestStatus]>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
+    getCurrentlyLiveTestsWithStatus(): Promise<Array<[TestConfig, TestStatus]>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
     listCommentsForQuestion(questionId: bigint): Promise<Array<Comment>>;

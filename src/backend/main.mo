@@ -5,10 +5,9 @@ import Runtime "mo:core/Runtime";
 import Array "mo:core/Array";
 import Text "mo:core/Text";
 import Principal "mo:core/Principal";
-import Float "mo:core/Float";
-import List "mo:core/List";
-import Nat "mo:core/Nat";
 import Order "mo:core/Order";
+import Nat "mo:core/Nat";
+import List "mo:core/List";
 
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
@@ -34,7 +33,7 @@ actor {
     userId : Principal;
     testId : Nat;
     answers : [Nat];
-    score : Float;
+    score : Nat;
     timeTaken : Nat;
     submittedAt : Time.Time;
   };
@@ -87,8 +86,9 @@ actor {
     durationMinutes : Nat;
     totalQuestions : Nat;
     markingScheme : {
-      correctMarks : Float;
-      incorrectPenalty : Float;
+      correctMarks : Nat;
+      incorrectPenalty : Nat;
+      penaltyOption : ?Text;
     };
     questions : [Nat];
     createdBy : Principal;
@@ -144,14 +144,14 @@ actor {
 
   public type LeaderboardEntry = {
     userProfile : UserProfile;
-    score : Float;
+    score : Nat;
     rank : Nat;
     submittedAt : Time.Time;
   };
 
   public type OverallLeaderboardEntry = {
     userProfile : UserProfile;
-    averageScore : Float;
+    averageScore : Nat;
     totalAttempts : Nat;
     rank : Nat;
   };
@@ -186,14 +186,14 @@ actor {
   let comments = Map.empty<Nat, Comment>();
   var nextCommentId = 1;
 
-  public shared query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
+  public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view their profiles");
     };
     userProfiles.get(caller);
   };
 
-  public shared query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
+  public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
     if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Can only view your own profile");
     };
@@ -268,7 +268,10 @@ actor {
     suggestion.id;
   };
 
-  public shared query ({ caller }) func listSuggestions() : async SuggestionsResponse {
+  public query ({ caller }) func listSuggestions() : async SuggestionsResponse {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can view suggestions");
+    };
     let suggestionList = suggestions.values().toArray();
     {
       suggestions = suggestionList;
@@ -283,7 +286,7 @@ actor {
     suggestions.remove(id);
   };
 
-  public shared query ({ caller }) func listCommentsForQuestion(questionId : Nat) : async [Comment] {
+  public query ({ caller }) func listCommentsForQuestion(questionId : Nat) : async [Comment] {
     comments.values().toArray().filter(func(c) { c.questionId == questionId });
   };
 
@@ -309,5 +312,120 @@ actor {
       Runtime.trap("Unauthorized: Only admins can delete comments");
     };
     comments.remove(id);
+  };
+
+  public shared ({ caller }) func deleteExpiredUnpublishedTests() : async () {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can perform this action");
+    };
+
+    let currentTime = Time.now();
+    let filteredOrderList = List.empty<Nat>();
+
+    for (testId in testConfigOrder.values()) {
+      switch (testConfigs.get(testId)) {
+        case (null) {};
+        case (?config) {
+          let testExpired = switch (config.endTime) {
+            case (?endTime) { currentTime > endTime };
+            case (null) { false };
+          };
+
+          if (not testExpired or config.isPublished) {
+            filteredOrderList.add(testId);
+          };
+        };
+      };
+    };
+
+    testConfigOrder := filteredOrderList.reverse().toArray();
+  };
+
+  public query ({ caller }) func getAllTestConfigsWithStatus() : async [(TestConfig, TestStatus)] {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can view all test configurations");
+    };
+
+    let now = Time.now();
+    let sortedConfigs = testConfigOrder.map(func(id) { testConfigs.get(id) });
+
+    let results : List.List<(TestConfig, TestStatus)> = List.empty<(TestConfig, TestStatus)>();
+
+    for (configOpt in sortedConfigs.values()) {
+      switch (configOpt) {
+        case (null) {};
+        case (?config) {
+          let status = if (not config.isPublished) {
+            #scheduled;
+          } else if (switch (config.startTime) {
+            case (?start) { now < start };
+            case (null) { false };
+          }) {
+            #scheduled;
+          } else {
+            switch (config.endTime) {
+              case (?end) {
+                let twoHoursMicro = 2 * 60 * 60 * 1000000;
+                if (now >= end and now < end + twoHoursMicro) {
+                  #ended;
+                } else if (now >= end) {
+                  #finished;
+                } else {
+                  #live;
+                };
+              };
+              case (null) { #live };
+            };
+          };
+          results.add((config, status));
+        };
+      };
+    };
+    results.reverse().toArray();
+  };
+
+  public query ({ caller }) func getCurrentlyLiveTestsWithStatus() : async [(TestConfig, TestStatus)] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view live tests");
+    };
+
+    let now = Time.now();
+    let sortedConfigs = testConfigOrder.map(func(id) { testConfigs.get(id) });
+
+    let filtered : List.List<(TestConfig, TestStatus)> = List.empty<(TestConfig, TestStatus)>();
+
+    for (configOpt in sortedConfigs.values()) {
+      switch (configOpt) {
+        case (null) {};
+        case (?config) {
+          if (config.isPublished) {
+            switch (config.startTime) {
+              case (?start) {
+                if (now >= start) {
+                  switch (config.endTime) {
+                    case (?end) {
+                      let twoHoursMicro = 2 * 60 * 60 * 1000000;
+                      if (now < end + twoHoursMicro) {
+                        let status = if (now >= end) { #ended } else {
+                          #live;
+                        };
+                        filtered.add((config, status));
+                      };
+                    };
+                    case (null) {
+                      filtered.add((config, #live));
+                    };
+                  };
+                };
+              };
+              case (null) {
+                filtered.add((config, #live));
+              };
+            };
+          };
+        };
+      };
+    };
+    filtered.reverse().toArray();
   };
 };

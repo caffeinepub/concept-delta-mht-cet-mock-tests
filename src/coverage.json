@@ -1,42 +1,46 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-13T16:32:59.765Z",
+  "generatedAt": "2026-02-17T13:56:28.272Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 4,
-    "implemented": 0,
+    "total": 3,
+    "implemented": 2,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Implement a backend API `getCallerUserRole()` that returns the caller role as a text value compatible with the frontend checks (e.g., \"admin\", \"user\", \"guest\"). Use the existing authorization/access-control state already included in `backend/main.mo` (MixinAuthorization + AccessControl).",
+        "summary": "Implement backend query APIs required for Admin Panel data loading: (1) list questions filtered by subject for the Question Gallery, and (2) ensure suggestions listing continues to work with the existing listSuggestions() response shape used by the frontend.",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
         "id": "REQ-2",
-        "summary": "Implement a backend API for YouTube subscription verification that the frontend mutation `useSetYouTubeVerified` can call (e.g., `setYouTubeVerified()`), which updates the caller's `UserProfile` by setting `isYouTubeVerified = true` and setting `youtubeVerificationTimestamp = ?Time.now()` without requiring the frontend to pass any parameters.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
+        "summary": "Wire the Question Management UI to real backend data by updating the React Query hook useGetQuestionsBySubject(subject) to call the new backend query API and return the fetched list instead of an empty array stub.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/backend.d.ts",
+          "frontend/src/hooks/useQueries.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useQueries.ts"
+        ]
       },
       {
         "id": "REQ-3",
-        "summary": "Add backend suggestion APIs backed by the existing `suggestions` map in `backend/main.mo`: (1) submit a suggestion (author text + feedback text, assign incremental id + timestamp), (2) list all suggestions with total count, and (3) delete a suggestion by id (admin-only). Ensure the return shape for listing matches the existing backend type `SuggestionsResponse` ({ suggestions : [Suggestion]; count : Nat }).",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-4",
-        "summary": "Add backend comment APIs backed by the existing `comments` map in `backend/main.mo`: (1) list comments for a given `questionId`, (2) post a comment for a question (text, assigns incremental id, stores caller principal as userId, sets timestamp), and (3) delete a comment by id. Deletion must be allowed for admins; non-admin deletion must be rejected. Use the existing public `Comment` type in `backend/main.mo` for compatibility.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
+        "summary": "Ensure Suggestions Moderation loads and updates correctly end-to-end: the useGetAllSuggestions hook fetches from backend listSuggestions(), and after deleting a suggestion via useDeleteSuggestion(), the suggestions list refreshes (query invalidation) and the UI reflects the deletion.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/SuggestionModerationPanel.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/SuggestionModerationPanel.tsx"
+        ]
       }
     ]
   },
@@ -46,10 +50,8 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
+    "frontend/src/components/QuestionManagementPanel.tsx",
+    "frontend/src/components/SuggestionModerationPanel.tsx",
     "frontend/src/hooks/useQueries.ts",
     "project_state.json",
     "scratch/component-selection.json",

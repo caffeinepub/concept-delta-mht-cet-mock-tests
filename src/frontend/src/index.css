@@ -94,6 +94,32 @@
   }
 }
 
+/* Header readability fix - solid opaque background with optional blur */
+@layer components {
+  .app-header {
+    background-color: rgba(255, 255, 255, 0.95);
+    color: oklch(15% 0 0);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  .dark .app-header {
+    background-color: rgba(20, 20, 30, 0.95);
+    color: oklch(98% 0 0);
+  }
+
+  /* Ensure Sheet mobile menu has solid background */
+  .app-sheet-content {
+    background-color: oklch(100% 0 0) !important;
+    color: oklch(15% 0 0) !important;
+  }
+
+  .dark .app-sheet-content {
+    background-color: oklch(15% 0.02 250) !important;
+    color: oklch(98% 0 0) !important;
+  }
+}
+
 /* Solid overlay and backdrop fixes - ONLY when open */
 @layer base {
   /* Ensure all Radix overlays are solid and opaque ONLY when open */
@@ -123,9 +149,21 @@
     opacity: 0 !important;
   }
 
-  /* Ensure content has solid background when open */
+  /* Ensure Sheet content has solid background when open */
+  [data-radix-sheet-content][data-state="open"] {
+    background-color: oklch(100% 0 0) !important;
+    color: oklch(15% 0 0) !important;
+    z-index: 51 !important;
+    position: fixed !important;
+  }
+
+  .dark [data-radix-sheet-content][data-state="open"] {
+    background-color: oklch(15% 0.02 250) !important;
+    color: oklch(98% 0 0) !important;
+  }
+
+  /* Ensure other dialog/alert content has solid background when open */
   [data-radix-dialog-content][data-state="open"],
-  [data-radix-sheet-content][data-state="open"],
   [data-radix-alert-dialog-content][data-state="open"] {
     background-color: hsl(var(--background)) !important;
     color: hsl(var(--foreground)) !important;
@@ -335,53 +373,27 @@
   background: linear-gradient(135deg, hsl(var(--primary)) 0%, oklch(45% 0.20 250) 100%);
   color: hsl(var(--primary-foreground));
   font-weight: 700;
+  font-size: 1.125rem;
   padding: 1rem 2rem;
-  font-size: 1rem;
-  line-height: 1.5;
   border-radius: 0.75rem;
-  box-shadow: 0 6px 20px hsla(var(--primary) / 0.4);
+  box-shadow: 0 8px 20px hsla(var(--primary) / 0.35);
   transition: all 0.3s ease;
-  min-height: 56px;
-  width: 100%;
-  max-width: 600px;
+  border: none;
+  cursor: pointer;
 }
 
 .cta-primary-button:hover:not(:disabled) {
   background: linear-gradient(135deg, oklch(45% 0.20 250) 0%, oklch(50% 0.22 250) 100%);
-  box-shadow: 0 8px 24px hsla(var(--primary) / 0.5);
+  box-shadow: 0 12px 28px hsla(var(--primary) / 0.45);
   transform: translateY(-2px);
 }
 
 .cta-primary-button:active:not(:disabled) {
   transform: translateY(0);
+  box-shadow: 0 4px 12px hsla(var(--primary) / 0.3);
 }
 
-@media (min-width: 640px) {
-  .cta-primary-button {
-    font-size: 1.125rem;
-    padding: 1.25rem 2.5rem;
-  }
-}
-
-.cta-button-text {
-  display: block;
-  text-align: center;
-}
-
-.telegram-highlight-box {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem 1.5rem;
-  background: linear-gradient(135deg, oklch(95% 0.02 85) 0%, oklch(98% 0.01 85) 100%);
-  border: 2px solid oklch(85% 0.04 85);
-  border-radius: 0.75rem;
-  box-shadow: 0 4px 12px rgba(0, 31, 63, 0.15);
-  transition: all 0.2s ease;
-}
-
-.telegram-highlight-box:hover {
-  box-shadow: 0 6px 16px rgba(0, 31, 63, 0.25);
-  transform: translateY(-2px);
-  border-color: oklch(75% 0.06 85);
+.cta-primary-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }

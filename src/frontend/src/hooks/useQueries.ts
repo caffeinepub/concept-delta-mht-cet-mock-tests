@@ -1,7 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
+import { useInternetIdentity } from './useInternetIdentity';
 import type { UserProfile, Question, TestConfig, TestAttempt, TestStatus, TestType, SectionType, Comment, LeaderboardEntry, OverallLeaderboardEntry } from '../types/local';
-import type { UserProfile as BackendUserProfile, Comment as BackendComment, Suggestion } from '../backend';
+import type { UserProfile as BackendUserProfile, Comment as BackendComment, Suggestion, TestConfig as BackendTestConfig, TestStatus as BackendTestStatus } from '../backend';
 import { toast } from 'sonner';
 
 // Helper function to convert backend UserProfile to local UserProfile
@@ -29,19 +30,19 @@ function convertBackendProfileToLocal(backendProfile: BackendUserProfile): UserP
 }
 
 // Helper function to convert local UserProfile to backend UserProfile
-function convertLocalProfileToBackend(localProfile: Omit<UserProfile, 'id' | 'testAttempts' | 'createdAt' | 'lastLogin'>, actorPrincipal: any): BackendUserProfile {
+function convertLocalProfileToBackend(localProfile: Omit<UserProfile, 'id' | 'testAttempts' | 'createdAt' | 'lastLogin'>, callerPrincipal: any): BackendUserProfile {
   return {
-    id: actorPrincipal,
+    id: callerPrincipal,
     fullName: localProfile.fullName,
     email: localProfile.email,
     mobileNumber: localProfile.mobileNumber,
     testAttempts: [],
-    createdAt: BigInt(Date.now() * 1000000),
-    lastLogin: BigInt(Date.now() * 1000000),
+    createdAt: BigInt(Date.now()) * 1_000_000n,
+    lastLogin: BigInt(Date.now()) * 1_000_000n,
     isYouTubeVerified: localProfile.isYouTubeVerified,
-    youtubeVerificationTimestamp: localProfile.youtubeVerificationTimestamp ?? undefined,
+    youtubeVerificationTimestamp: localProfile.youtubeVerificationTimestamp !== null ? localProfile.youtubeVerificationTimestamp : undefined,
     isBlocked: localProfile.isBlocked,
-    blockTimestamp: localProfile.blockTimestamp ?? undefined,
+    blockTimestamp: localProfile.blockTimestamp !== null ? localProfile.blockTimestamp : undefined,
   };
 }
 
@@ -53,6 +54,33 @@ function convertBackendCommentToLocal(backendComment: BackendComment): Comment {
     userId: backendComment.userId.toString(),
     text: backendComment.text,
     timestamp: backendComment.timestamp,
+  };
+}
+
+// Helper function to convert backend TestConfig to local TestConfig
+function convertBackendTestConfigToLocal(backendConfig: BackendTestConfig): TestConfig {
+  return {
+    id: backendConfig.id,
+    name: backendConfig.name,
+    subject: backendConfig.subject,
+    chapters: backendConfig.chapters,
+    testType: backendConfig.testType as TestType,
+    durationMinutes: backendConfig.durationMinutes,
+    totalQuestions: backendConfig.totalQuestions,
+    markingScheme: {
+      correctMarks: Number(backendConfig.markingScheme.correctMarks),
+      incorrectPenalty: Number(backendConfig.markingScheme.incorrectPenalty),
+      penaltyOption: backendConfig.markingScheme.penaltyOption ?? null,
+    },
+    questions: backendConfig.questions,
+    createdBy: backendConfig.createdBy.toString(),
+    createdAt: backendConfig.createdAt,
+    updatedAt: backendConfig.updatedAt ?? null,
+    isPublished: backendConfig.isPublished,
+    isStopped: backendConfig.isStopped,
+    startTime: backendConfig.startTime ?? null,
+    endTime: backendConfig.endTime ?? null,
+    sectionType: (backendConfig.sectionType as SectionType | undefined) ?? null,
   };
 }
 
@@ -85,15 +113,17 @@ export function useGetCallerUserProfile() {
 
 export function useSaveCallerUserProfile() {
   const { actor } = useActor();
+  const { identity } = useInternetIdentity();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (profile: Omit<UserProfile, 'id' | 'testAttempts' | 'createdAt' | 'lastLogin'>) => {
       if (!actor) throw new Error('Actor not available');
+      if (!identity) throw new Error('Identity not available');
       
-      // Get the actor's principal - we need to pass a dummy principal since backend will override with caller
-      const dummyPrincipal = { toText: () => 'dummy' } as any;
-      const backendProfile = convertLocalProfileToBackend(profile, dummyPrincipal);
+      // Get the authenticated principal from Internet Identity
+      const callerPrincipal = identity.getPrincipal();
+      const backendProfile = convertLocalProfileToBackend(profile, callerPrincipal);
       
       const savedProfile = await actor.saveCallerUserProfile(backendProfile);
       return convertBackendProfileToLocal(savedProfile);
@@ -135,11 +165,14 @@ export function useGetTestConfigsWithStatus() {
     queryFn: async () => {
       if (!actor) return [];
       try {
-        // Backend method not available - return empty array
-        return [];
+        const result = await actor.getAllTestConfigsWithStatus();
+        return result.map(([config, status]) => [
+          convertBackendTestConfigToLocal(config),
+          status as TestStatus
+        ]);
       } catch (error) {
         console.error('Error fetching test configs:', error);
-        return [];
+        throw error;
       }
     },
     enabled: !!actor && !actorFetching,
@@ -163,10 +196,11 @@ export function useGetOrderedTestConfigs() {
     queryFn: async () => {
       if (!actor) return [];
       try {
-        return [];
+        const result = await actor.getAllTestConfigsWithStatus();
+        return result.map(([config]) => convertBackendTestConfigToLocal(config));
       } catch (error) {
         console.error('Error fetching ordered test configs:', error);
-        return [];
+        throw error;
       }
     },
     enabled: !!actor && !isFetching,
@@ -274,16 +308,13 @@ export function useStopTestConfig() {
 export function useGetQuestionsBySubject(subject: string) {
   const { actor, isFetching } = useActor();
 
-  return useQuery({
+  return useQuery<Question[]>({
     queryKey: ['questionsBySubject', subject],
     queryFn: async () => {
-      if (!actor) return [];
-      try {
-        return [];
-      } catch (error) {
-        console.error('Error fetching questions by subject:', error);
-        return [];
-      }
+      if (!actor) throw new Error('Actor not available');
+      // Backend method not yet implemented - return empty array for now
+      // This will be implemented in a future update
+      return [];
     },
     enabled: !!actor && !isFetching && !!subject,
     retry: false,
@@ -447,16 +478,16 @@ export function useGetOverallLeaderboard() {
 export function useGetAllSuggestions() {
   const { actor, isFetching } = useActor();
 
-  return useQuery<{ suggestions: Suggestion[]; count: bigint }>({
+  return useQuery<Suggestion[]>({
     queryKey: ['allSuggestions'],
     queryFn: async () => {
-      if (!actor) return { suggestions: [], count: BigInt(0) };
+      if (!actor) throw new Error('Actor not available');
       try {
         const result = await actor.listSuggestions();
-        return result;
+        return result.suggestions;
       } catch (error) {
         console.error('Error fetching suggestions:', error);
-        return { suggestions: [], count: BigInt(0) };
+        throw error;
       }
     },
     enabled: !!actor && !isFetching,

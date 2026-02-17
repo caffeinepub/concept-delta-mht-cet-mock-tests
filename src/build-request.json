@@ -1,95 +1,86 @@
 {
   "kind": "build_request",
-  "title": "Backend part 1: add missing role, YouTube verification, suggestions, and comments APIs",
+  "title": "Day 2: Restore Admin Panel data loading (Suggestions + Question Gallery backend queries)",
+  "projectName": "Concept Delta",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Implement a backend API `getCallerUserRole()` that returns the caller role as a text value compatible with the frontend checks (e.g., \"admin\", \"user\", \"guest\"). Use the existing authorization/access-control state already included in `backend/main.mo` (MixinAuthorization + AccessControl).",
+      "text": "Implement backend query APIs required for Admin Panel data loading: (1) list questions filtered by subject for the Question Gallery, and (2) ensure suggestions listing continues to work with the existing listSuggestions() response shape used by the frontend.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-4"
         ],
         "quotes": [
-          "Continue with backend part 1"
+          "start day 2"
         ]
       },
       "acceptanceCriteria": [
-        "Calling `getCallerUserRole()` from the frontend returns a stable role string and does not trap for anonymous callers (returns \"guest\" when not authenticated/authorized).",
-        "Admin principals receive \"admin\"; normal permitted users receive \"user\"."
+        "Backend exposes a query method that returns all questions for a given subject (matching the subject values used by the frontend, e.g., \"Physics\", \"Chemistry\", \"Mathematics\").",
+        "The returned question records include the fields needed by the existing Question Gallery UI (id, subject, chapter, difficulty, questionText, options, image/preview if present).",
+        "The existing listSuggestions() method remains callable from the frontend and returns a response compatible with the generated TS types (suggestions array + count)."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Implement a backend API for YouTube subscription verification that the frontend mutation `useSetYouTubeVerified` can call (e.g., `setYouTubeVerified()`), which updates the caller's `UserProfile` by setting `isYouTubeVerified = true` and setting `youtubeVerificationTimestamp = ?Time.now()` without requiring the frontend to pass any parameters.",
-      "target": "backend",
+      "text": "Wire the Question Management UI to real backend data by updating the React Query hook useGetQuestionsBySubject(subject) to call the new backend query API and return the fetched list instead of an empty array stub.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-4"
         ],
         "quotes": [
-          "Continue with backend part 1"
+          "start day 2"
         ]
       },
       "acceptanceCriteria": [
-        "If the caller has an existing `UserProfile`, calling the API updates the stored profile fields (`isYouTubeVerified`, `youtubeVerificationTimestamp`) and returns successfully.",
-        "If the caller does not have a profile yet, the API returns a clear error (trap) indicating the profile must be created first.",
-        "After a successful call, `getCallerUserProfile()` returns the updated values."
+        "On Admin Panel > Question Gallery, changing the subject dropdown triggers a fetch and renders the returned questions instead of always showing an empty state.",
+        "If the backend call fails, the existing error UI in QuestionManagementPanel is shown (\"Failed to load questions...\").",
+        "The hook uses a stable React Query key that includes the subject (keeping the existing ['questionsBySubject', subject] pattern)."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Add backend suggestion APIs backed by the existing `suggestions` map in `backend/main.mo`: (1) submit a suggestion (author text + feedback text, assign incremental id + timestamp), (2) list all suggestions with total count, and (3) delete a suggestion by id (admin-only). Ensure the return shape for listing matches the existing backend type `SuggestionsResponse` ({ suggestions : [Suggestion]; count : Nat }).",
-      "target": "backend",
+      "text": "Ensure Suggestions Moderation loads and updates correctly end-to-end: the useGetAllSuggestions hook fetches from backend listSuggestions(), and after deleting a suggestion via useDeleteSuggestion(), the suggestions list refreshes (query invalidation) and the UI reflects the deletion.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-4"
         ],
         "quotes": [
-          "Continue with backend part 1"
+          "start day 2"
         ]
       },
       "acceptanceCriteria": [
-        "A non-admin authenticated caller can submit a suggestion and it is persisted with a unique id and timestamp.",
-        "An admin can list suggestions and receives both the array and the correct count.",
-        "An admin can delete a suggestion by id; non-admin deletion attempts trap with an unauthorized error.",
-        "The APIs compile and are exposed in the generated candid so the frontend actor can call them."
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "text": "Add backend comment APIs backed by the existing `comments` map in `backend/main.mo`: (1) list comments for a given `questionId`, (2) post a comment for a question (text, assigns incremental id, stores caller principal as userId, sets timestamp), and (3) delete a comment by id. Deletion must be allowed for admins; non-admin deletion must be rejected. Use the existing public `Comment` type in `backend/main.mo` for compatibility.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "Continue with backend part 1"
-        ]
-      },
-      "acceptanceCriteria": [
-        "`getCommentsByQuestion(questionId)` returns all comments associated with that question id (empty array if none).",
-        "`postComment(questionId, text)` persists a new comment with a unique id, caller principal as userId, and a timestamp; subsequent listing includes it.",
-        "`deleteComment(commentId)` removes the comment if it exists; admin-only (non-admin attempts trap).",
-        "All new APIs compile in the single-actor `backend/main.mo` backend and are available to the frontend actor bindings."
+        "Admin Panel > Suggestions & Feedback shows existing suggestions stored in the canister (not a placeholder).",
+        "Deleting a suggestion succeeds only for admins (backend-enforced), removes it from the backend, and the UI updates without a page refresh.",
+        "When there are no suggestions, the UI shows the existing empty state message \"No suggestions submitted yet\"."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in `backend/main.mo`; do not introduce additional backend services.",
-    "Do not edit frontend immutable paths: `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useInternetIdentity.tsx`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`, `frontend/src/components/ui/*`.",
-    "Only add `backend/migration.mo` if an upgrade-safe state migration is required; otherwise, keep migration unchanged/absent."
+    "Backend must remain a single Motoko actor in backend/main.mo (no additional backend services).",
+    "Do not edit files under frontend/src/components/ui or any paths listed as immutable in SYSTEM_CONTEXT.",
+    "Use English for any user-facing text."
   ],
   "nonGoals": [
-    "Implementing test config creation/publishing/stopping/reordering APIs.",
-    "Implementing question gallery query APIs beyond the already-present `deleteQuestion`.",
-    "Implementing leaderboard calculation APIs.",
-    "Implementing PDF export features (currently placeholders on the frontend)."
+    "Implementing full Question Gallery CRUD (upload/add question UI) beyond data loading (planned for a later day).",
+    "Implementing Create Test flows/APIs (planned for a later day).",
+    "Adding new authentication providers beyond Internet Identity."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

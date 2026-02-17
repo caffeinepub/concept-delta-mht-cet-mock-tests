@@ -4,6 +4,7 @@ import { useBootstrappedCallerRole } from './hooks/useBootstrappedCallerRole';
 import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
 import AboutPage from './pages/AboutPage';
+import AdminPanel from './pages/AdminPanel';
 import ProfileSetup from './components/ProfileSetup';
 import ViewActivationOverlay from './components/ViewActivationOverlay';
 import AppErrorBoundary from './components/AppErrorBoundary';
@@ -14,7 +15,7 @@ import { ThemeProvider } from 'next-themes';
 import { ViewActivationProvider, useViewActivation } from './contexts/ViewActivationContext';
 import { saveView, getLastView, getLastNonTestView } from './utils/viewPersistence';
 
-export type AppView = 'landing' | 'dashboard' | 'about';
+export type AppView = 'landing' | 'dashboard' | 'about' | 'admin';
 
 function AppContent() {
   const { identity } = useInternetIdentity();
@@ -34,8 +35,8 @@ function AppContent() {
       return 'about';
     }
     
-    // For dashboard or any other view, default to landing
-    // We'll handle dashboard restoration after auth check
+    // For dashboard, admin, or any other view, default to landing
+    // We'll handle restoration after auth check
     return 'landing';
   });
   
@@ -60,7 +61,7 @@ function AppContent() {
     }
   }, []);
 
-  // Handle initial view restoration for dashboard (only after auth is confirmed)
+  // Handle initial view restoration for dashboard/admin (only after auth is confirmed)
   useEffect(() => {
     if (isInitialMount.current && isAuthenticated && !profileLoading && isFetched && userProfile) {
       const lastView = getLastView();
@@ -73,10 +74,17 @@ function AppContent() {
         saveView('dashboard');
         hasAutoNavigated.current = true;
       }
+      // Restore admin panel if it was the last view and user is admin
+      else if ((lastView === 'admin' || lastNonTestView === 'admin') && isAdmin) {
+        startActivation('admin', 'landing');
+        setCurrentView('admin');
+        saveView('admin');
+        hasAutoNavigated.current = true;
+      }
       
       isInitialMount.current = false;
     }
-  }, [isAuthenticated, profileLoading, isFetched, userProfile, startActivation]);
+  }, [isAuthenticated, profileLoading, isFetched, userProfile, isAdmin, startActivation]);
 
   // Auto-navigate to Dashboard after successful login (if profile exists and not already navigated)
   useEffect(() => {
@@ -100,7 +108,7 @@ function AppContent() {
 
   // Cancel activation when navigating away from the target view
   useEffect(() => {
-    if (currentView !== 'dashboard') {
+    if (currentView !== 'dashboard' && currentView !== 'admin') {
       cancelActivation(currentView);
     }
   }, [currentView, cancelActivation]);
@@ -111,9 +119,9 @@ function AppContent() {
   }, [currentView]);
 
   const handleNavigate = (view: AppView) => {
-    // Dashboard navigation - start activation
-    if (view === 'dashboard') {
-      startActivation('dashboard', currentView);
+    // Dashboard or Admin navigation - start activation
+    if (view === 'dashboard' || view === 'admin') {
+      startActivation(view, currentView);
     } else {
       // For About and Landing, cancel any pending activation immediately
       cancelActivation(currentView);
@@ -149,6 +157,9 @@ function AppContent() {
       )}
       {currentView === 'dashboard' && (
         <Dashboard onNavigate={handleNavigate} onStartTest={() => {}} />
+      )}
+      {currentView === 'admin' && (
+        <AdminPanel onNavigate={handleNavigate} />
       )}
       <Toaster />
     </AppErrorBoundary>

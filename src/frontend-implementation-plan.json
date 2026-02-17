@@ -1,6 +1,49 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Backend part 1 APIs (frontend-only plan: no changes required)",
-  "requirements": []
+  "title": "Concept Delta — Restore Admin Panel data loading (frontend wiring)",
+  "requirements": [
+    {
+      "id": "REQ-2",
+      "summary": "Update useGetQuestionsBySubject(subject) to fetch Question Gallery data from the backend and surface loading/error states correctly.",
+      "acceptanceCriteria": [
+        "On Admin Panel > Question Gallery, changing the subject dropdown triggers a fetch and renders the returned questions instead of always showing an empty state.",
+        "If the backend call fails, the existing error UI in QuestionManagementPanel is shown (\"Failed to load questions...\").",
+        "The hook uses a stable React Query key that includes the subject (keeping the existing ['questionsBySubject', subject] pattern)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/backend.d.ts",
+          "operation": "modify",
+          "description": "Extend the generated backend TypeScript interface/types to include the new question-by-subject query method and its return type (matching fields needed by the existing Question Gallery UI). Keep the signature aligned with how the frontend will call it from React Query."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Implement useGetQuestionsBySubject(subject) to call the backend question-by-subject query method, convert the returned records into the local Question shape used by QuestionGallery, and throw on failure so React Query sets isError (allowing QuestionManagementPanel to show its existing error UI). Ensure the queryKey remains ['questionsBySubject', subject] and only runs when actor is available and subject is non-empty."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Ensure Suggestions Moderation reads real suggestions and refreshes after deletion via React Query invalidation.",
+      "acceptanceCriteria": [
+        "Admin Panel > Suggestions & Feedback shows existing suggestions stored in the canister (not a placeholder).",
+        "Deleting a suggestion succeeds only for admins (backend-enforced), removes it from the backend, and the UI updates without a page refresh.",
+        "When there are no suggestions, the UI shows the existing empty state message \"No suggestions submitted yet\"."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Harden useGetAllSuggestions to surface backend failures as React Query errors (throw instead of silently returning an empty placeholder), so the existing error UI in SuggestionModerationPanel can be shown when appropriate. Keep the ['allSuggestions'] key. Ensure useDeleteSuggestion continues to invalidate ['allSuggestions'] after successful deletion; optionally also update the cached list immediately for snappier UI. This flow relies on the existing authorization setup (Internet Identity + role checks); verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/SuggestionModerationPanel.tsx",
+          "operation": "modify",
+          "description": "Align the panel behavior with the updated hooks: ensure it renders fetched suggestions from useGetAllSuggestions, continues to show the existing empty state message when suggestions are empty, and relies on the query invalidation after useDeleteSuggestion so the list updates without a full page refresh. Avoid masking authorization errors; let backend-enforced admin checks surface as an error/toast as currently handled. Verify the component's usage instructions before implementing."
+        }
+      ]
+    }
+  ]
 }
