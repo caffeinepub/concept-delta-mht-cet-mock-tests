@@ -7,6 +7,13 @@ export interface None {
     __kind__: "None";
 }
 export type Option<T> = Some<T> | None;
+export class ExternalBlob {
+    getBytes(): Promise<Uint8Array<ArrayBuffer>>;
+    getDirectURL(): string;
+    static fromURL(url: string): ExternalBlob;
+    static fromBytes(blob: Uint8Array<ArrayBuffer>): ExternalBlob;
+    withUploadProgress(onProgress: (percentage: number) => void): ExternalBlob;
+}
 export type Time = bigint;
 export interface TestConfig {
     id: bigint;
@@ -56,6 +63,25 @@ export interface TestAttempt {
     timeTaken: bigint;
     testId: bigint;
 }
+export interface Option {
+    text: string;
+    image?: ExternalBlob;
+}
+export interface Question {
+    id: bigint;
+    subject: string;
+    difficulty: string;
+    explanation?: string;
+    createdAt: Time;
+    createdBy: Principal;
+    correctAnswer: bigint;
+    questionText: string;
+    updatedAt?: Time;
+    classLevel: TestType;
+    image?: ExternalBlob;
+    chapter: string;
+    options: Array<Option>;
+}
 export interface UserProfile {
     id: Principal;
     isBlocked: boolean;
@@ -92,6 +118,9 @@ export enum UserRole {
 }
 export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    attachOptionImage(questionId: bigint, optionIndex: bigint, imageBlob: ExternalBlob): Promise<void>;
+    attachQuestionImage(questionId: bigint, imageBlob: ExternalBlob): Promise<void>;
+    createQuestion(subject: string, chapter: string, difficulty: string, questionText: string, options: Array<Option>, correctAnswer: bigint, explanation: string | null, image: ExternalBlob | null, classLevel: TestType): Promise<bigint>;
     deleteComment(id: bigint): Promise<void>;
     deleteExpiredUnpublishedTests(): Promise<void>;
     deleteQuestion(questionId: bigint): Promise<void>;
@@ -100,12 +129,16 @@ export interface backendInterface {
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getCurrentlyLiveTestsWithStatus(): Promise<Array<[TestConfig, TestStatus]>>;
+    getQuestion(questionId: bigint): Promise<Question | null>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
     listCommentsForQuestion(questionId: bigint): Promise<Array<Comment>>;
+    listQuestions(subjectFilter: string | null): Promise<Array<Question>>;
+    listQuestionsBySubject(subject: string): Promise<Array<Question>>;
     listSuggestions(): Promise<SuggestionsResponse>;
     postComment(questionId: bigint, text: string): Promise<bigint>;
     saveCallerUserProfile(profile: UserProfile): Promise<UserProfile>;
     setYouTubeVerified(): Promise<void>;
     submitSuggestion(author: string, feedback: string): Promise<bigint>;
+    updateQuestion(questionId: bigint, subject: string, chapter: string, difficulty: string, questionText: string, options: Array<Option>, correctAnswer: bigint, explanation: string | null, image: ExternalBlob | null, classLevel: TestType): Promise<void>;
 }

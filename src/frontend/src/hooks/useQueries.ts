@@ -1,9 +1,29 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
 import { useInternetIdentity } from './useInternetIdentity';
-import type { UserProfile, Question, TestConfig, TestAttempt, TestStatus, TestType, SectionType, Comment, LeaderboardEntry, OverallLeaderboardEntry } from '../types/local';
-import type { UserProfile as BackendUserProfile, Comment as BackendComment, Suggestion, TestConfig as BackendTestConfig, TestStatus as BackendTestStatus } from '../backend';
+import type { UserProfile, Question, TestConfig, TestAttempt, TestStatus, SectionType, Comment, LeaderboardEntry, OverallLeaderboardEntry } from '../types/local';
+import type { UserProfile as BackendUserProfile, Comment as BackendComment, Suggestion, TestConfig as BackendTestConfig, TestStatus as BackendTestStatus, Question as BackendQuestion, TestType as BackendTestType } from '../backend';
+import { ExternalBlob, TestType as BackendTestTypeEnum } from '../backend';
 import { toast } from 'sonner';
+
+// Helper to convert local TestType string to backend TestType enum
+function convertTestTypeToBackend(testType: string): BackendTestType {
+  switch (testType) {
+    case 'class11':
+      return BackendTestTypeEnum.class11;
+    case 'class12':
+      return BackendTestTypeEnum.class12;
+    case 'completeSyllabus':
+      return BackendTestTypeEnum.completeSyllabus;
+    default:
+      return BackendTestTypeEnum.class12;
+  }
+}
+
+// Helper to convert backend TestType enum to local string
+function convertTestTypeToLocal(testType: BackendTestType): string {
+  return testType as string;
+}
 
 // Helper function to convert backend UserProfile to local UserProfile
 function convertBackendProfileToLocal(backendProfile: BackendUserProfile): UserProfile {
@@ -64,7 +84,7 @@ function convertBackendTestConfigToLocal(backendConfig: BackendTestConfig): Test
     name: backendConfig.name,
     subject: backendConfig.subject,
     chapters: backendConfig.chapters,
-    testType: backendConfig.testType as TestType,
+    testType: convertTestTypeToLocal(backendConfig.testType),
     durationMinutes: backendConfig.durationMinutes,
     totalQuestions: backendConfig.totalQuestions,
     markingScheme: {
@@ -81,6 +101,28 @@ function convertBackendTestConfigToLocal(backendConfig: BackendTestConfig): Test
     startTime: backendConfig.startTime ?? null,
     endTime: backendConfig.endTime ?? null,
     sectionType: (backendConfig.sectionType as SectionType | undefined) ?? null,
+  };
+}
+
+// Helper function to convert backend Question to local Question
+function convertBackendQuestionToLocal(backendQuestion: BackendQuestion): Question {
+  return {
+    id: backendQuestion.id,
+    subject: backendQuestion.subject,
+    chapter: backendQuestion.chapter,
+    difficulty: backendQuestion.difficulty,
+    questionText: backendQuestion.questionText,
+    options: backendQuestion.options.map(opt => ({
+      text: opt.text,
+      image: opt.image ?? undefined,
+    })),
+    correctAnswer: backendQuestion.correctAnswer,
+    explanation: backendQuestion.explanation ?? undefined,
+    image: backendQuestion.image ?? undefined,
+    createdBy: backendQuestion.createdBy.toString(),
+    createdAt: backendQuestion.createdAt,
+    updatedAt: backendQuestion.updatedAt ?? undefined,
+    classLevel: convertTestTypeToLocal(backendQuestion.classLevel),
   };
 }
 
@@ -312,12 +354,113 @@ export function useGetQuestionsBySubject(subject: string) {
     queryKey: ['questionsBySubject', subject],
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
-      // Backend method not yet implemented - return empty array for now
-      // This will be implemented in a future update
-      return [];
+      try {
+        const backendQuestions = await actor.listQuestionsBySubject(subject);
+        return backendQuestions.map(convertBackendQuestionToLocal);
+      } catch (error) {
+        console.error('Error fetching questions by subject:', error);
+        throw error;
+      }
     },
     enabled: !!actor && !isFetching && !!subject,
     retry: false,
+  });
+}
+
+export function useCreateQuestion() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: {
+      subject: string;
+      chapter: string;
+      difficulty: string;
+      questionText: string;
+      options: Array<{ text: string; image?: ExternalBlob }>;
+      correctAnswer: bigint;
+      explanation?: string;
+      image?: ExternalBlob;
+      classLevel: string;
+    }) => {
+      if (!actor) throw new Error('Actor not available');
+      
+      // Map options to backend format inline without type annotation
+      const backendOptions = params.options.map(opt => ({
+        text: opt.text,
+        image: opt.image ?? null,
+      }));
+
+      const questionId = await actor.createQuestion(
+        params.subject,
+        params.chapter,
+        params.difficulty,
+        params.questionText,
+        backendOptions,
+        params.correctAnswer,
+        params.explanation ?? null,
+        params.image ?? null,
+        convertTestTypeToBackend(params.classLevel)
+      );
+      
+      return questionId;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['questionsBySubject', variables.subject] });
+      queryClient.invalidateQueries({ queryKey: ['questionCount'] });
+      toast.success('Question created successfully');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to create question');
+    },
+  });
+}
+
+export function useUpdateQuestion() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: {
+      questionId: bigint;
+      subject: string;
+      chapter: string;
+      difficulty: string;
+      questionText: string;
+      options: Array<{ text: string; image?: ExternalBlob }>;
+      correctAnswer: bigint;
+      explanation?: string;
+      image?: ExternalBlob;
+      classLevel: string;
+    }) => {
+      if (!actor) throw new Error('Actor not available');
+      
+      // Map options to backend format inline without type annotation
+      const backendOptions = params.options.map(opt => ({
+        text: opt.text,
+        image: opt.image ?? null,
+      }));
+
+      await actor.updateQuestion(
+        params.questionId,
+        params.subject,
+        params.chapter,
+        params.difficulty,
+        params.questionText,
+        backendOptions,
+        params.correctAnswer,
+        params.explanation ?? null,
+        params.image ?? null,
+        convertTestTypeToBackend(params.classLevel)
+      );
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['questionsBySubject', variables.subject] });
+      toast.success('Question updated successfully');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to update question');
+    },
   });
 }
 

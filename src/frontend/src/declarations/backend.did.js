@@ -24,16 +24,21 @@ export const UserRole = IDL.Variant({
   'user' : IDL.Null,
   'guest' : IDL.Null,
 });
-export const Time = IDL.Int;
-export const SectionType = IDL.Variant({
-  'full' : IDL.Null,
-  'physicsChemistry' : IDL.Null,
-  'mathematics' : IDL.Null,
+export const ExternalBlob = IDL.Vec(IDL.Nat8);
+export const Option = IDL.Record({
+  'text' : IDL.Text,
+  'image' : IDL.Opt(ExternalBlob),
 });
 export const TestType = IDL.Variant({
   'class11' : IDL.Null,
   'class12' : IDL.Null,
   'completeSyllabus' : IDL.Null,
+});
+export const Time = IDL.Int;
+export const SectionType = IDL.Variant({
+  'full' : IDL.Null,
+  'physicsChemistry' : IDL.Null,
+  'mathematics' : IDL.Null,
 });
 export const TestConfig = IDL.Record({
   'id' : IDL.Nat,
@@ -85,6 +90,21 @@ export const UserProfile = IDL.Record({
   'testAttempts' : IDL.Vec(TestAttempt),
   'blockTimestamp' : IDL.Opt(Time),
 });
+export const Question = IDL.Record({
+  'id' : IDL.Nat,
+  'subject' : IDL.Text,
+  'difficulty' : IDL.Text,
+  'explanation' : IDL.Opt(IDL.Text),
+  'createdAt' : Time,
+  'createdBy' : IDL.Principal,
+  'correctAnswer' : IDL.Nat,
+  'questionText' : IDL.Text,
+  'updatedAt' : IDL.Opt(Time),
+  'classLevel' : TestType,
+  'image' : IDL.Opt(ExternalBlob),
+  'chapter' : IDL.Text,
+  'options' : IDL.Vec(Option),
+});
 export const Comment = IDL.Record({
   'id' : IDL.Nat,
   'userId' : IDL.Principal,
@@ -132,6 +152,23 @@ export const idlService = IDL.Service({
   '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+  'attachOptionImage' : IDL.Func([IDL.Nat, IDL.Nat, ExternalBlob], [], []),
+  'attachQuestionImage' : IDL.Func([IDL.Nat, ExternalBlob], [], []),
+  'createQuestion' : IDL.Func(
+      [
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Vec(Option),
+        IDL.Nat,
+        IDL.Opt(IDL.Text),
+        IDL.Opt(ExternalBlob),
+        TestType,
+      ],
+      [IDL.Nat],
+      [],
+    ),
   'deleteComment' : IDL.Func([IDL.Nat], [], []),
   'deleteExpiredUnpublishedTests' : IDL.Func([], [], []),
   'deleteQuestion' : IDL.Func([IDL.Nat], [], []),
@@ -148,6 +185,7 @@ export const idlService = IDL.Service({
       [IDL.Vec(IDL.Tuple(TestConfig, TestStatus))],
       ['query'],
     ),
+  'getQuestion' : IDL.Func([IDL.Nat], [IDL.Opt(Question)], ['query']),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
       [IDL.Opt(UserProfile)],
@@ -159,11 +197,37 @@ export const idlService = IDL.Service({
       [IDL.Vec(Comment)],
       ['query'],
     ),
+  'listQuestions' : IDL.Func(
+      [IDL.Opt(IDL.Text)],
+      [IDL.Vec(Question)],
+      ['query'],
+    ),
+  'listQuestionsBySubject' : IDL.Func(
+      [IDL.Text],
+      [IDL.Vec(Question)],
+      ['query'],
+    ),
   'listSuggestions' : IDL.Func([], [SuggestionsResponse], ['query']),
   'postComment' : IDL.Func([IDL.Nat, IDL.Text], [IDL.Nat], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [UserProfile], []),
   'setYouTubeVerified' : IDL.Func([], [], []),
   'submitSuggestion' : IDL.Func([IDL.Text, IDL.Text], [IDL.Nat], []),
+  'updateQuestion' : IDL.Func(
+      [
+        IDL.Nat,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Vec(Option),
+        IDL.Nat,
+        IDL.Opt(IDL.Text),
+        IDL.Opt(ExternalBlob),
+        TestType,
+      ],
+      [],
+      [],
+    ),
 });
 
 export const idlInitArgs = [];
@@ -185,16 +249,21 @@ export const idlFactory = ({ IDL }) => {
     'user' : IDL.Null,
     'guest' : IDL.Null,
   });
-  const Time = IDL.Int;
-  const SectionType = IDL.Variant({
-    'full' : IDL.Null,
-    'physicsChemistry' : IDL.Null,
-    'mathematics' : IDL.Null,
+  const ExternalBlob = IDL.Vec(IDL.Nat8);
+  const Option = IDL.Record({
+    'text' : IDL.Text,
+    'image' : IDL.Opt(ExternalBlob),
   });
   const TestType = IDL.Variant({
     'class11' : IDL.Null,
     'class12' : IDL.Null,
     'completeSyllabus' : IDL.Null,
+  });
+  const Time = IDL.Int;
+  const SectionType = IDL.Variant({
+    'full' : IDL.Null,
+    'physicsChemistry' : IDL.Null,
+    'mathematics' : IDL.Null,
   });
   const TestConfig = IDL.Record({
     'id' : IDL.Nat,
@@ -246,6 +315,21 @@ export const idlFactory = ({ IDL }) => {
     'testAttempts' : IDL.Vec(TestAttempt),
     'blockTimestamp' : IDL.Opt(Time),
   });
+  const Question = IDL.Record({
+    'id' : IDL.Nat,
+    'subject' : IDL.Text,
+    'difficulty' : IDL.Text,
+    'explanation' : IDL.Opt(IDL.Text),
+    'createdAt' : Time,
+    'createdBy' : IDL.Principal,
+    'correctAnswer' : IDL.Nat,
+    'questionText' : IDL.Text,
+    'updatedAt' : IDL.Opt(Time),
+    'classLevel' : TestType,
+    'image' : IDL.Opt(ExternalBlob),
+    'chapter' : IDL.Text,
+    'options' : IDL.Vec(Option),
+  });
   const Comment = IDL.Record({
     'id' : IDL.Nat,
     'userId' : IDL.Principal,
@@ -293,6 +377,23 @@ export const idlFactory = ({ IDL }) => {
     '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+    'attachOptionImage' : IDL.Func([IDL.Nat, IDL.Nat, ExternalBlob], [], []),
+    'attachQuestionImage' : IDL.Func([IDL.Nat, ExternalBlob], [], []),
+    'createQuestion' : IDL.Func(
+        [
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Vec(Option),
+          IDL.Nat,
+          IDL.Opt(IDL.Text),
+          IDL.Opt(ExternalBlob),
+          TestType,
+        ],
+        [IDL.Nat],
+        [],
+      ),
     'deleteComment' : IDL.Func([IDL.Nat], [], []),
     'deleteExpiredUnpublishedTests' : IDL.Func([], [], []),
     'deleteQuestion' : IDL.Func([IDL.Nat], [], []),
@@ -309,6 +410,7 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(IDL.Tuple(TestConfig, TestStatus))],
         ['query'],
       ),
+    'getQuestion' : IDL.Func([IDL.Nat], [IDL.Opt(Question)], ['query']),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
         [IDL.Opt(UserProfile)],
@@ -320,11 +422,37 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(Comment)],
         ['query'],
       ),
+    'listQuestions' : IDL.Func(
+        [IDL.Opt(IDL.Text)],
+        [IDL.Vec(Question)],
+        ['query'],
+      ),
+    'listQuestionsBySubject' : IDL.Func(
+        [IDL.Text],
+        [IDL.Vec(Question)],
+        ['query'],
+      ),
     'listSuggestions' : IDL.Func([], [SuggestionsResponse], ['query']),
     'postComment' : IDL.Func([IDL.Nat, IDL.Text], [IDL.Nat], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [UserProfile], []),
     'setYouTubeVerified' : IDL.Func([], [], []),
     'submitSuggestion' : IDL.Func([IDL.Text, IDL.Text], [IDL.Nat], []),
+    'updateQuestion' : IDL.Func(
+        [
+          IDL.Nat,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Vec(Option),
+          IDL.Nat,
+          IDL.Opt(IDL.Text),
+          IDL.Opt(ExternalBlob),
+          TestType,
+        ],
+        [],
+        [],
+      ),
   });
 };
 

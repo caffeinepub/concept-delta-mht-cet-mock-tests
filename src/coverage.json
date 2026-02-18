@@ -1,45 +1,67 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-17T13:56:28.272Z",
+  "generatedAt": "2026-02-18T14:01:11.224Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
+    "total": 5,
     "implemented": 2,
     "items": [
       {
-        "id": "REQ-1",
-        "summary": "Implement backend query APIs required for Admin Panel data loading: (1) list questions filtered by subject for the Question Gallery, and (2) ensure suggestions listing continues to work with the existing listSuggestions() response shape used by the frontend.",
+        "id": "REQ-4",
+        "summary": "Implement backend (Motoko) Question Gallery APIs to support full CRUD for questions, including: create a new question, list questions filtered by subject, update an existing question, and delete a question. Enforce admin-only access for create/update/delete and allow authenticated users to read/list questions.",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
-        "id": "REQ-2",
-        "summary": "Wire the Question Management UI to real backend data by updating the React Query hook useGetQuestionsBySubject(subject) to call the new backend query API and return the fetched list instead of an empty array stub.",
+        "id": "REQ-5",
+        "summary": "Add persistent stable storage for Question Gallery data so questions (and associated counters/indices needed for listing and CRUD) survive canister upgrades/redeploys.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-6",
+        "summary": "Support storing and returning question images for gallery questions using the existing blob-storage mixin (Storage.ExternalBlob fields already present in Question/Option types). Provide backend methods needed by the frontend to attach uploaded images to a question (question-level image and option-level image).",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-7",
+        "summary": "Wire the AdminPanel Question Gallery UI to the real backend Question Gallery APIs by updating React Query hooks and components so that selecting a subject loads questions from the backend instead of returning an empty stub.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/backend.d.ts",
-          "frontend/src/hooks/useQueries.ts"
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/types/local.ts",
+          "frontend/src/components/QuestionManagementPanel.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts"
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/types/local.ts",
+          "frontend/src/components/QuestionManagementPanel.tsx"
         ]
       },
       {
-        "id": "REQ-3",
-        "summary": "Ensure Suggestions Moderation loads and updates correctly end-to-end: the useGetAllSuggestions hook fetches from backend listSuggestions(), and after deleting a suggestion via useDeleteSuggestion(), the suggestions list refreshes (query invalidation) and the UI reflects the deletion.",
+        "id": "REQ-8",
+        "summary": "Add Admin UI support for creating and editing gallery questions (including optional images) within the existing AdminPanel QuestionManagementPanel flow, and connect it to the new backend create/update APIs.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/hooks/useQueries.ts",
-          "frontend/src/components/SuggestionModerationPanel.tsx"
+          "frontend/src/utils/externalBlob.ts",
+          "frontend/src/components/QuestionEditorDialog.tsx",
+          "frontend/src/components/QuestionManagementPanel.tsx",
+          "frontend/src/components/QuestionGallery.tsx"
         ],
         "matchedFiles": [
           "frontend/src/hooks/useQueries.ts",
-          "frontend/src/components/SuggestionModerationPanel.tsx"
+          "frontend/src/utils/externalBlob.ts",
+          "frontend/src/components/QuestionEditorDialog.tsx",
+          "frontend/src/components/QuestionManagementPanel.tsx"
         ]
       }
     ]
@@ -50,9 +72,15 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/components/QuestionEditorDialog.tsx",
     "frontend/src/components/QuestionManagementPanel.tsx",
-    "frontend/src/components/SuggestionModerationPanel.tsx",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
     "frontend/src/hooks/useQueries.ts",
+    "frontend/src/types/local.ts",
+    "frontend/src/utils/externalBlob.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

@@ -2,10 +2,12 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-wire-the-question-management-ui-to-real-backend-data-by-updating-the-react-query-hook-usegetquestionsbysubject-subject-to-call-the-new-backend-query-api-and-return-the-fetched-list-instead-of-an-empty-array-stub",
-      "featureTitle": "Wire the Question Management UI to real backend data by updating the React Query hook useGetQuestionsBySubject(subject) to call the new backend query API and return the fetched list instead of an empty array stub.",
+      "featureId": "feature-wire-the-adminpanel-question-gallery-ui-to-the-real-backend-question-gallery-apis-by-updating-react-query-hooks-and-components-so-that-selecting-a-subject-loads-questions-from-the-backend-instead-of-returning-an-empty-stub",
+      "featureTitle": "Wire the AdminPanel Question Gallery UI to the real backend Question Gallery APIs by updating React Query hooks and components so that selecting a subject loads questions from the backend instead of returning an empty stub.",
       "files": [
-        "frontend/src/hooks/useQueries.ts"
+        "frontend/src/components/QuestionManagementPanel.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/types/local.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -18,16 +20,18 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-2"
+        "REQ-7"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-ensure-suggestions-moderation-loads-and-updates-correctly-end-to-end-the-usegetallsuggestions-hook-fetches-from-backend-listsuggestions-and-after-deleting-a-suggestion-via-usedeletesuggestion-the-suggestions-list-refreshes-query-invalidation-and-the-ui-reflects-the-deletion",
-      "featureTitle": "Ensure Suggestions Moderation loads and updates correctly end-to-end: the useGetAllSuggestions hook fetches from backend listSuggestions(), and after deleting a suggestion via useDeleteSuggestion(), the suggestions list refreshes (query invalidation) and the UI reflects the deletion.",
+      "featureId": "feature-add-admin-ui-support-for-creating-and-editing-gallery-questions-including-optional-images-within-the-existing-adminpanel-questionmanagementpanel-flow-and-connect-it-to-the-new-backend-create-update-apis",
+      "featureTitle": "Add Admin UI support for creating and editing gallery questions (including optional images) within the existing AdminPanel QuestionManagementPanel flow, and connect it to the new backend create/update APIs.",
       "files": [
-        "frontend/src/components/SuggestionModerationPanel.tsx",
-        "frontend/src/hooks/useQueries.ts"
+        "frontend/src/components/QuestionEditorDialog.tsx",
+        "frontend/src/components/QuestionManagementPanel.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/utils/externalBlob.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -40,7 +44,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-3"
+        "REQ-8"
       ],
       "confidence": "high"
     }

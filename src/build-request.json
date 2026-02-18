@@ -1,73 +1,118 @@
 {
   "kind": "build_request",
-  "title": "Day 2: Restore Admin Panel data loading (Suggestions + Question Gallery backend queries)",
+  "title": "Day 3: Implement Question Gallery CRUD + Persistence + Admin UI Wiring",
   "projectName": "Concept Delta",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-1",
-      "text": "Implement backend query APIs required for Admin Panel data loading: (1) list questions filtered by subject for the Question Gallery, and (2) ensure suggestions listing continues to work with the existing listSuggestions() response shape used by the frontend.",
+      "id": "REQ-4",
+      "text": "Implement backend (Motoko) Question Gallery APIs to support full CRUD for questions, including: create a new question, list questions filtered by subject, update an existing question, and delete a question. Enforce admin-only access for create/update/delete and allow authenticated users to read/list questions.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-1"
         ],
         "quotes": [
-          "start day 2"
+          "start day 3",
+          "yes"
         ]
       },
       "acceptanceCriteria": [
-        "Backend exposes a query method that returns all questions for a given subject (matching the subject values used by the frontend, e.g., \"Physics\", \"Chemistry\", \"Mathematics\").",
-        "The returned question records include the fields needed by the existing Question Gallery UI (id, subject, chapter, difficulty, questionText, options, image/preview if present).",
-        "The existing listSuggestions() method remains callable from the frontend and returns a response compatible with the generated TS types (suggestions array + count)."
+        "Non-admin callers cannot create, update, or delete questions (backend traps with a clear unauthorized message).",
+        "Admin callers can create a question and receive a unique question id.",
+        "Listing questions by subject returns the created questions for that subject.",
+        "Admin callers can update a question and subsequent reads reflect the updated fields.",
+        "Admin callers can delete a question and it is removed from question listings.",
+        "Deleting a question continues to remove that questionId from any TestConfig.questions arrays (preserve current behavior in deleteQuestion)."
       ]
     },
     {
-      "id": "REQ-2",
-      "text": "Wire the Question Management UI to real backend data by updating the React Query hook useGetQuestionsBySubject(subject) to call the new backend query API and return the fetched list instead of an empty array stub.",
+      "id": "REQ-5",
+      "text": "Add persistent stable storage for Question Gallery data so questions (and associated counters/indices needed for listing and CRUD) survive canister upgrades/redeploys.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Add persistent stable storage so questions persist forever."
+        ]
+      },
+      "acceptanceCriteria": [
+        "After an upgrade, previously created gallery questions are still returned by the list-by-subject API.",
+        "The next-question-id counter does not reset after upgrade; new questions get new ids without collisions.",
+        "No runtime traps occur during preupgrade/postupgrade due to serialization/deserialization issues."
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "text": "Support storing and returning question images for gallery questions using the existing blob-storage mixin (Storage.ExternalBlob fields already present in Question/Option types). Provide backend methods needed by the frontend to attach uploaded images to a question (question-level image and option-level image).",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "store image uploads"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Backend exposes a workflow/API that allows the frontend to upload an image blob and receive a Storage.ExternalBlob reference.",
+        "Creating/updating a question can include an optional question image and optional option images.",
+        "When listing questions by subject, returned questions include the ExternalBlob references for any stored images."
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "text": "Wire the AdminPanel Question Gallery UI to the real backend Question Gallery APIs by updating React Query hooks and components so that selecting a subject loads questions from the backend instead of returning an empty stub.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-1"
         ],
         "quotes": [
-          "start day 2"
+          "Restore Question Gallery functions"
         ]
       },
       "acceptanceCriteria": [
-        "On Admin Panel > Question Gallery, changing the subject dropdown triggers a fetch and renders the returned questions instead of always showing an empty state.",
-        "If the backend call fails, the existing error UI in QuestionManagementPanel is shown (\"Failed to load questions...\").",
-        "The hook uses a stable React Query key that includes the subject (keeping the existing ['questionsBySubject', subject] pattern)."
+        "In frontend/src/hooks/useQueries.ts, useGetQuestionsBySubject(subject) calls the backend list-by-subject query and returns the fetched list.",
+        "In frontend/src/components/QuestionManagementPanel.tsx, changing the subject triggers a refetch and updates the gallery list.",
+        "When backend returns 0 questions, the existing empty-state UI remains (\"No questions available for this subject\").",
+        "When backend returns questions, frontend/src/components/QuestionGallery.tsx renders them and search/filter works as before."
       ]
     },
     {
-      "id": "REQ-3",
-      "text": "Ensure Suggestions Moderation loads and updates correctly end-to-end: the useGetAllSuggestions hook fetches from backend listSuggestions(), and after deleting a suggestion via useDeleteSuggestion(), the suggestions list refreshes (query invalidation) and the UI reflects the deletion.",
-      "target": "both",
+      "id": "REQ-8",
+      "text": "Add Admin UI support for creating and editing gallery questions (including optional images) within the existing AdminPanel QuestionManagementPanel flow, and connect it to the new backend create/update APIs.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-1"
         ],
         "quotes": [
-          "start day 2"
+          "Upload question to gallery",
+          "Edit question support"
         ]
       },
       "acceptanceCriteria": [
-        "Admin Panel > Suggestions & Feedback shows existing suggestions stored in the canister (not a placeholder).",
-        "Deleting a suggestion succeeds only for admins (backend-enforced), removes it from the backend, and the UI updates without a page refresh.",
-        "When there are no suggestions, the UI shows the existing empty state message \"No suggestions submitted yet\"."
+        "Admin can open a form in the Question Management area to create a new question with subject, chapter, difficulty, questionText, options, correctAnswer, explanation (optional), and classLevel.",
+        "Submitting the create form calls the backend create API and the new question appears in the gallery for the selected subject without a full page reload (react-query invalidation/refetch).",
+        "Admin can select a question and edit its fields; submitting calls the backend update API and the gallery reflects the updated data.",
+        "If image upload is used in the form, the UI uploads the blob, receives an ExternalBlob reference, and includes it in create/update payloads.",
+        "Non-admin users do not see create/edit controls."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in backend/main.mo (no additional backend services).",
-    "Do not edit files under frontend/src/components/ui or any paths listed as immutable in SYSTEM_CONTEXT.",
+    "Backend must remain a single Motoko actor with logic in backend/main.mo; add backend/migration.mo only if required by state upgrade needs.",
+    "Do not edit frontend immutable paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, and any sources under frontend/src/components/ui (compose them instead).",
     "Use English for any user-facing text."
   ],
   "nonGoals": [
-    "Implementing full Question Gallery CRUD (upload/add question UI) beyond data loading (planned for a later day).",
-    "Implementing Create Test flows/APIs (planned for a later day).",
-    "Adding new authentication providers beyond Internet Identity."
+    "Implementing real-time updates (WebSockets) for the gallery.",
+    "Adding third-party authentication beyond Internet Identity.",
+    "Building a separate external database; persistence must use canister stable storage.",
+    "Implementing PDF export features (existing PDF export components are placeholders)."
   ],
   "imageRequirements": {
     "required": [],

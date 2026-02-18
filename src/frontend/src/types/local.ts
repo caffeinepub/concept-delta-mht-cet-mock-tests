@@ -1,6 +1,8 @@
 // Local type definitions for types not exported by backend
 // These match the backend Motoko types but are defined locally for frontend use
 
+import { ExternalBlob } from '../backend';
+
 export interface UserProfile {
   id: string;
   fullName: string;
@@ -26,7 +28,7 @@ export interface TestAttempt {
 
 export interface Option {
   text: string;
-  image: any | null; // ExternalBlob type
+  image?: ExternalBlob;
 }
 
 export interface Question {
@@ -37,49 +39,24 @@ export interface Question {
   questionText: string;
   options: Option[];
   correctAnswer: bigint;
-  explanation: string | null;
-  image: any | null; // ExternalBlob type
+  explanation?: string;
+  image?: ExternalBlob;
   createdBy: string;
   createdAt: bigint;
-  updatedAt: bigint | null;
-  classLevel: TestType;
+  updatedAt?: bigint;
+  classLevel: string;
 }
 
-export interface SanitizedQuestion {
-  id: bigint;
-  subject: string;
-  chapter: string;
-  difficulty: string;
-  questionText: string;
-  options: Option[];
-  image: any | null;
-}
-
-export enum TestStatus {
-  scheduled = 'scheduled',
-  live = 'live',
-  ended = 'ended',
-  finished = 'finished',
-}
-
-export enum TestType {
-  class11 = 'class11',
-  class12 = 'class12',
-  completeSyllabus = 'completeSyllabus',
-}
-
-export enum SectionType {
-  physicsChemistry = 'physicsChemistry',
-  mathematics = 'mathematics',
-  full = 'full',
-}
+export type TestType = 'class11' | 'class12' | 'completeSyllabus';
+export type SectionType = 'physicsChemistry' | 'mathematics' | 'full';
+export type TestStatus = 'scheduled' | 'live' | 'ended' | 'finished';
 
 export interface TestConfig {
   id: bigint;
   name: string;
   subject: string;
   chapters: string[];
-  testType: TestType;
+  testType: string;
   durationMinutes: bigint;
   totalQuestions: bigint;
   markingScheme: {
@@ -108,14 +85,14 @@ export interface Comment {
 
 export interface LeaderboardEntry {
   userProfile: UserProfile;
-  score: number;
+  score: bigint;
   rank: bigint;
   submittedAt: bigint;
 }
 
 export interface OverallLeaderboardEntry {
   userProfile: UserProfile;
-  averageScore: number;
+  averageScore: bigint;
   totalAttempts: bigint;
   rank: bigint;
 }

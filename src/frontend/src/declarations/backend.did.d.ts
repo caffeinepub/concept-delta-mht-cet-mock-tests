@@ -17,6 +17,23 @@ export interface Comment {
   'timestamp' : Time,
   'questionId' : bigint,
 }
+export type ExternalBlob = Uint8Array;
+export interface Option { 'text' : string, 'image' : [] | [ExternalBlob] }
+export interface Question {
+  'id' : bigint,
+  'subject' : string,
+  'difficulty' : string,
+  'explanation' : [] | [string],
+  'createdAt' : Time,
+  'createdBy' : Principal,
+  'correctAnswer' : bigint,
+  'questionText' : string,
+  'updatedAt' : [] | [Time],
+  'classLevel' : TestType,
+  'image' : [] | [ExternalBlob],
+  'chapter' : string,
+  'options' : Array<Option>,
+}
 export type SectionType = { 'full' : null } |
   { 'physicsChemistry' : null } |
   { 'mathematics' : null };
@@ -114,6 +131,22 @@ export interface _SERVICE {
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'attachOptionImage' : ActorMethod<[bigint, bigint, ExternalBlob], undefined>,
+  'attachQuestionImage' : ActorMethod<[bigint, ExternalBlob], undefined>,
+  'createQuestion' : ActorMethod<
+    [
+      string,
+      string,
+      string,
+      string,
+      Array<Option>,
+      bigint,
+      [] | [string],
+      [] | [ExternalBlob],
+      TestType,
+    ],
+    bigint
+  >,
   'deleteComment' : ActorMethod<[bigint], undefined>,
   'deleteExpiredUnpublishedTests' : ActorMethod<[], undefined>,
   'deleteQuestion' : ActorMethod<[bigint], undefined>,
@@ -128,14 +161,32 @@ export interface _SERVICE {
     [],
     Array<[TestConfig, TestStatus]>
   >,
+  'getQuestion' : ActorMethod<[bigint], [] | [Question]>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'listCommentsForQuestion' : ActorMethod<[bigint], Array<Comment>>,
+  'listQuestions' : ActorMethod<[[] | [string]], Array<Question>>,
+  'listQuestionsBySubject' : ActorMethod<[string], Array<Question>>,
   'listSuggestions' : ActorMethod<[], SuggestionsResponse>,
   'postComment' : ActorMethod<[bigint, string], bigint>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], UserProfile>,
   'setYouTubeVerified' : ActorMethod<[], undefined>,
   'submitSuggestion' : ActorMethod<[string, string], bigint>,
+  'updateQuestion' : ActorMethod<
+    [
+      bigint,
+      string,
+      string,
+      string,
+      string,
+      Array<Option>,
+      bigint,
+      [] | [string],
+      [] | [ExternalBlob],
+      TestType,
+    ],
+    undefined
+  >,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

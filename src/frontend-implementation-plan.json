@@ -1,47 +1,70 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Concept Delta — Restore Admin Panel data loading (frontend wiring)",
+  "title": "Concept Delta — Admin Question Gallery: Backend Wiring + Create/Edit UI",
   "requirements": [
     {
-      "id": "REQ-2",
-      "summary": "Update useGetQuestionsBySubject(subject) to fetch Question Gallery data from the backend and surface loading/error states correctly.",
+      "id": "REQ-7",
+      "summary": "Wire Question Gallery subject selection to fetch and display real backend questions via React Query.",
       "acceptanceCriteria": [
-        "On Admin Panel > Question Gallery, changing the subject dropdown triggers a fetch and renders the returned questions instead of always showing an empty state.",
-        "If the backend call fails, the existing error UI in QuestionManagementPanel is shown (\"Failed to load questions...\").",
-        "The hook uses a stable React Query key that includes the subject (keeping the existing ['questionsBySubject', subject] pattern)."
+        "In frontend/src/hooks/useQueries.ts, useGetQuestionsBySubject(subject) calls the backend list-by-subject query and returns the fetched list.",
+        "In frontend/src/components/QuestionManagementPanel.tsx, changing the subject triggers a refetch and updates the gallery list.",
+        "When backend returns 0 questions, the existing empty-state UI remains (\"No questions available for this subject\").",
+        "When backend returns questions, frontend/src/components/QuestionGallery.tsx renders them and search/filter works as before."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/backend.d.ts",
-          "operation": "modify",
-          "description": "Extend the generated backend TypeScript interface/types to include the new question-by-subject query method and its return type (matching fields needed by the existing Question Gallery UI). Keep the signature aligned with how the frontend will call it from React Query."
-        },
-        {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Implement useGetQuestionsBySubject(subject) to call the backend question-by-subject query method, convert the returned records into the local Question shape used by QuestionGallery, and throw on failure so React Query sets isError (allowing QuestionManagementPanel to show its existing error UI). Ensure the queryKey remains ['questionsBySubject', subject] and only runs when actor is available and subject is non-empty."
+          "description": "Implement Question Gallery fetching by updating useGetQuestionsBySubject(subject) to call the backend capability for list-by-subject and convert backend Question/Option shapes (including optional ExternalBlob image references) into the existing local Question type. Ensure query keys remain subject-scoped and errors are surfaced consistently."
+        },
+        {
+          "path": "frontend/src/types/local.ts",
+          "operation": "modify",
+          "description": "Align local Question/Option image fields with backend optionality (allow undefined/null) so fetched questions with/without ExternalBlob images can be represented without type mismatches."
+        },
+        {
+          "path": "frontend/src/components/QuestionManagementPanel.tsx",
+          "operation": "modify",
+          "description": "Ensure subject changes actively trigger refresh behavior (e.g., by invoking refetch on selectedSubject change) and keep current empty/error/loading states unchanged while using the real fetched questions list."
         }
       ]
     },
     {
-      "id": "REQ-3",
-      "summary": "Ensure Suggestions Moderation reads real suggestions and refreshes after deletion via React Query invalidation.",
+      "id": "REQ-8",
+      "summary": "Add admin-only create/edit question UI (including optional images) within the existing QuestionManagementPanel flow and connect to backend create/update APIs with React Query invalidation.",
       "acceptanceCriteria": [
-        "Admin Panel > Suggestions & Feedback shows existing suggestions stored in the canister (not a placeholder).",
-        "Deleting a suggestion succeeds only for admins (backend-enforced), removes it from the backend, and the UI updates without a page refresh.",
-        "When there are no suggestions, the UI shows the existing empty state message \"No suggestions submitted yet\"."
+        "Admin can open a form in the Question Management area to create a new question with subject, chapter, difficulty, questionText, options, correctAnswer, explanation (optional), and classLevel.",
+        "Submitting the create form calls the backend create API and the new question appears in the gallery for the selected subject without a full page reload (react-query invalidation/refetch).",
+        "Admin can select a question and edit its fields; submitting calls the backend update API and the gallery reflects the updated data.",
+        "If image upload is used in the form, the UI uploads the blob, receives an ExternalBlob reference, and includes it in create/update payloads.",
+        "Non-admin users do not see create/edit controls."
       ],
       "file_operations": [
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Harden useGetAllSuggestions to surface backend failures as React Query errors (throw instead of silently returning an empty placeholder), so the existing error UI in SuggestionModerationPanel can be shown when appropriate. Keep the ['allSuggestions'] key. Ensure useDeleteSuggestion continues to invalidate ['allSuggestions'] after successful deletion; optionally also update the cached list immediately for snappier UI. This flow relies on the existing authorization setup (Internet Identity + role checks); verify the component's usage instructions before implementing."
+          "description": "Add React Query mutations for Question Gallery create and update that call backend capabilities, and invalidate/refetch the currently selected subject’s questions on success. Include error handling that surfaces authorization failures cleanly."
         },
         {
-          "path": "frontend/src/components/SuggestionModerationPanel.tsx",
+          "path": "frontend/src/utils/externalBlob.ts",
+          "operation": "create",
+          "description": "Create a small helper to convert a browser File into a blob-storage ExternalBlob instance (including optional upload progress handling). Use the blob-storage ExternalBlob API to support image upload workflows. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/QuestionEditorDialog.tsx",
+          "operation": "create",
+          "description": "Add an admin-only dialog component for creating/editing a gallery question, including fields for subject, chapter, difficulty, questionText, options, correctAnswer, explanation (optional), and classLevel, plus optional question image and per-option image selection. Use blob-storage ExternalBlob objects for images and render previews via ExternalBlob.getDirectURL() when available. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/QuestionManagementPanel.tsx",
           "operation": "modify",
-          "description": "Align the panel behavior with the updated hooks: ensure it renders fetched suggestions from useGetAllSuggestions, continues to show the existing empty state message when suggestions are empty, and relies on the query invalidation after useDeleteSuggestion so the list updates without a full page refresh. Avoid masking authorization errors; let backend-enforced admin checks surface as an error/toast as currently handled. Verify the component's usage instructions before implementing."
+          "description": "Wire create/edit controls into the existing Question Management area: show Create button and Edit button (enabled when exactly one question is selected) only for admins, open QuestionEditorDialog, and connect submit handlers to the new create/update mutations. On success, close the dialog and trigger react-query invalidation/refetch so the gallery updates without a full reload."
+        },
+        {
+          "path": "frontend/src/components/QuestionGallery.tsx",
+          "operation": "modify",
+          "description": "Preserve existing search/filter and empty state behavior, but ensure selection UX supports edit flow (single selection for edit via existing selectedQuestionIds). Keep create/edit controls out of the gallery for non-admin users; rely on the admin guard in the management panel."
         }
       ]
     }

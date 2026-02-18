@@ -1,24 +1,28 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "New project",
-  "architectural_notes": [],
+  "summary": "Building an AdminPanel with backend-backed Question Gallery management; Day 2 backend/API checks completed and proceeding to Day 3 to implement full Question Gallery CRUD and persistence.",
+  "architectural_notes": [
+    "Day 3 scope includes Question Gallery CRUD APIs and frontend wiring in AdminPanel.",
+    "Ensure gallery questions are stored in stable/persistent storage to survive upgrades.",
+    "If questions include images, implement image upload/storage handling end-to-end."
+  ],
   "known_issues": [],
   "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-wire-the-question-management-ui-to-real-backend-data-by-updating-the-react-query-hook-usegetquestionsbysubject-subject-to-call-the-new-backend-query-api-and-return-the-fetched-list-instead-of-an-empty-array-stub",
-      "title": "Wire the Question Management UI to real backend data by updating the React Query hook useGetQuestionsBySubject(subject) to call the new backend query API and return the fetched list instead of an empty array stub.",
+      "id": "feature-wire-the-adminpanel-question-gallery-ui-to-the-real-backend-question-gallery-apis-by-updating-react-query-hooks-and-components-so-that-selecting-a-subject-loads-questions-from-the-backend-instead-of-returning-an-empty-stub",
+      "title": "Wire the AdminPanel Question Gallery UI to the real backend Question Gallery APIs by updating React Query hooks and components so that selecting a subject loads questions from the backend instead of returning an empty stub.",
       "reqIds": [
-        "REQ-2"
+        "REQ-7"
       ],
       "version": 1
     },
     {
-      "id": "feature-ensure-suggestions-moderation-loads-and-updates-correctly-end-to-end-the-usegetallsuggestions-hook-fetches-from-backend-listsuggestions-and-after-deleting-a-suggestion-via-usedeletesuggestion-the-suggestions-list-refreshes-query-invalidation-and-the-ui-reflects-the-deletion",
-      "title": "Ensure Suggestions Moderation loads and updates correctly end-to-end: the useGetAllSuggestions hook fetches from backend listSuggestions(), and after deleting a suggestion via useDeleteSuggestion(), the suggestions list refreshes (query invalidation) and the UI reflects the deletion.",
+      "id": "feature-add-admin-ui-support-for-creating-and-editing-gallery-questions-including-optional-images-within-the-existing-adminpanel-questionmanagementpanel-flow-and-connect-it-to-the-new-backend-create-update-apis",
+      "title": "Add Admin UI support for creating and editing gallery questions (including optional images) within the existing AdminPanel QuestionManagementPanel flow, and connect it to the new backend create/update APIs.",
       "reqIds": [
-        "REQ-3"
+        "REQ-8"
       ],
       "version": 1
     }
@@ -26,9 +30,43 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Implement backend query APIs required for Admin Panel data loading: (1) list questions filtered by subject for the Question Gallery, and (2) ensure suggestions listing continues to work with the existing listSuggestions() response shape used by the frontend.",
+      "summary": "Day 3: Implement Question Gallery backend APIs (add/get/delete/update) and connect AdminPanel UI to make upload/display/delete/edit functional",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Day 3: Add persistent stable storage so gallery questions persist across upgrades/redeploys",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Day 3: Support storing/handling image uploads for gallery questions (if used by UI)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Implement backend (Motoko) Question Gallery APIs to support full CRUD for questions, including: create a new question, list questions filtered by subject, update an existing question, and delete a question. Enforce admin-only access for create/update/delete and allow authenticated users to read/list questions.",
       "reqIds": [
-        "REQ-1"
+        "REQ-4"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Add persistent stable storage for Question Gallery data so questions (and associated counters/indices needed for listing and CRUD) survive canister upgrades/redeploys.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Support storing and returning question images for gallery questions using the existing blob-storage mixin (Storage.ExternalBlob fields already present in Question/Option types). Provide backend methods needed by the frontend to attach uploaded images to a question (question-level image and option-level image).",
+      "reqIds": [
+        "REQ-6"
       ],
       "status": "pending"
     }
