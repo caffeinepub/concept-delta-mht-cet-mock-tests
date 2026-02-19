@@ -70,12 +70,7 @@ actor {
   };
 
   public type TestStatus = { #scheduled; #live; #ended; #finished };
-
-  public type TestType = {
-    #class11;
-    #class12;
-    #completeSyllabus;
-  };
+  public type TestType = { #class11; #class12; #completeSyllabus };
 
   type TestConfig = {
     id : Nat;
@@ -101,11 +96,7 @@ actor {
     sectionType : ?SectionType;
   };
 
-  public type SectionType = {
-    #physicsChemistry;
-    #mathematics;
-    #full;
-  };
+  public type SectionType = { #physicsChemistry; #mathematics; #full };
 
   type ActiveSession = {
     userId : Principal;
@@ -182,7 +173,6 @@ actor {
   var nextSuggestionId = 1;
   var nextTestConfigId = 1;
   var firstAdminAssigned = false;
-
   let comments = Map.empty<Nat, Comment>();
   var nextCommentId = 1;
 
@@ -223,6 +213,83 @@ actor {
     newProfile;
   };
 
+  public shared ({ caller }) func createQuestion(
+    subject : Text,
+    chapter : Text,
+    difficulty : Text,
+    questionText : Text,
+    options : [Option],
+    correctAnswer : Nat,
+    explanation : ?Text,
+    image : ?Storage.ExternalBlob,
+    classLevel : TestType,
+  ) : async Nat {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can create questions");
+    };
+
+    let question : Question = {
+      id = nextQuestionId;
+      subject;
+      chapter;
+      difficulty;
+      questionText;
+      options;
+      correctAnswer;
+      explanation;
+      image;
+      createdBy = caller;
+      createdAt = Time.now();
+      updatedAt = null;
+      classLevel;
+    };
+
+    questionBank.add(nextQuestionId, question);
+    nextQuestionId += 1;
+    question.id;
+  };
+
+  public shared ({ caller }) func updateQuestion(
+    questionId : Nat,
+    subject : Text,
+    chapter : Text,
+    difficulty : Text,
+    questionText : Text,
+    options : [Option],
+    correctAnswer : Nat,
+    explanation : ?Text,
+    image : ?Storage.ExternalBlob,
+    classLevel : TestType,
+  ) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can update questions");
+    };
+
+    switch (questionBank.get(questionId)) {
+      case (null) {
+        Runtime.trap("Question not found");
+      };
+      case (?existingQuestion) {
+        let updatedQuestion : Question = {
+          id = questionId;
+          subject;
+          chapter;
+          difficulty;
+          questionText;
+          options;
+          correctAnswer;
+          explanation;
+          image;
+          createdBy = existingQuestion.createdBy;
+          createdAt = existingQuestion.createdAt;
+          updatedAt = ?Time.now();
+          classLevel;
+        };
+        questionBank.add(questionId, updatedQuestion);
+      };
+    };
+  };
+
   public shared ({ caller }) func deleteQuestion(questionId : Nat) : async () {
     if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can delete questions");
@@ -233,6 +300,98 @@ actor {
       let filteredQuestions = config.questions.filter(func(q) { q != questionId });
       let updatedConfig = { config with questions = filteredQuestions };
       testConfigs.add(testId, updatedConfig);
+    };
+  };
+
+  public query ({ caller }) func getQuestion(questionId : Nat) : async ?Question {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can view questions");
+    };
+    questionBank.get(questionId);
+  };
+
+  public query ({ caller }) func listQuestions(subjectFilter : ?Text) : async [Question] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can list questions");
+    };
+
+    let allQuestions = questionBank.values().toArray();
+
+    switch (subjectFilter) {
+      case (null) { allQuestions };
+      case (?subject) {
+        allQuestions.filter(func(q : Question) : Bool {
+          q.subject == subject
+        });
+      };
+    };
+  };
+
+  public query ({ caller }) func listQuestionsBySubject(subject : Text) : async [Question] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can list questions");
+    };
+
+    questionBank.values().toArray().filter(func(q : Question) : Bool {
+      q.subject == subject
+    });
+  };
+
+  public shared ({ caller }) func attachQuestionImage(questionId : Nat, imageBlob : Storage.ExternalBlob) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can attach images to questions");
+    };
+
+    switch (questionBank.get(questionId)) {
+      case (null) {
+        Runtime.trap("Question not found");
+      };
+      case (?question) {
+        let updatedQuestion : Question = {
+          question with
+          image = ?imageBlob;
+          updatedAt = ?Time.now();
+        };
+        questionBank.add(questionId, updatedQuestion);
+      };
+    };
+  };
+
+  public shared ({ caller }) func attachOptionImage(questionId : Nat, optionIndex : Nat, imageBlob : Storage.ExternalBlob) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can attach images to options");
+    };
+
+    switch (questionBank.get(questionId)) {
+      case (null) {
+        Runtime.trap("Question not found");
+      };
+      case (?question) {
+        if (optionIndex >= question.options.size()) {
+          Runtime.trap("Option index out of bounds");
+        };
+
+        let updatedOptions = Array.tabulate(
+          question.options.size(),
+          func(i : Nat) : Option {
+            if (i == optionIndex) {
+              {
+                text = question.options[i].text;
+                image = ?imageBlob;
+              };
+            } else {
+              question.options[i];
+            };
+          },
+        );
+
+        let updatedQuestion : Question = {
+          question with
+          options = updatedOptions;
+          updatedAt = ?Time.now();
+        };
+        questionBank.add(questionId, updatedQuestion);
+      };
     };
   };
 

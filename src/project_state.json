@@ -1,28 +1,48 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Building an AdminPanel with backend-backed Question Gallery management; Day 2 backend/API checks completed and proceeding to Day 3 to implement full Question Gallery CRUD and persistence.",
+  "summary": "Physics mock test platform for COEP students with question management, test creation, and leaderboard features. Currently restoring missing features after partial rebuild.",
   "architectural_notes": [
-    "Day 3 scope includes Question Gallery CRUD APIs and frontend wiring in AdminPanel.",
-    "Ensure gallery questions are stored in stable/persistent storage to survive upgrades.",
-    "If questions include images, implement image upload/storage handling end-to-end."
+    "Backend APIs partially rebuilt - only 3 of 25+ methods currently implemented",
+    "Using stable memory for data persistence (questions, users, tests, results)",
+    "Question Gallery implemented first; other features temporarily disabled pending backend restoration",
+    "Multi-day restoration plan: Day 1 (dialog fix + user mgmt), Day 2 (test creation), Day 3 (take test flow), Day 4 (leaderboard + results), Day 5 (admin analytics)"
   ],
-  "known_issues": [],
-  "isFixRequest": false,
+  "known_issues": [
+    "Create Question dialog has dark/transparent background making text hard to read",
+    "Question Text field incorrectly marked as required (should be optional for image-only questions)",
+    "Deployment errors consuming credits - 2 builds failed with backend canister deployment error",
+    "User Management feature missing from Admin panel",
+    "Test Creation and Test Management features missing",
+    "Dashboard Leaderboard not visible",
+    "Take Test flow and available tests list not showing on Dashboard",
+    "Admin Analytics Dashboard missing",
+    "Result Analytics page not accessible",
+    "PDF export functionality for results missing"
+  ],
+  "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-wire-the-adminpanel-question-gallery-ui-to-the-real-backend-question-gallery-apis-by-updating-react-query-hooks-and-components-so-that-selecting-a-subject-loads-questions-from-the-backend-instead-of-returning-an-empty-stub",
-      "title": "Wire the AdminPanel Question Gallery UI to the real backend Question Gallery APIs by updating React Query hooks and components so that selecting a subject loads questions from the backend instead of returning an empty stub.",
+      "id": "feature-change-the-create-question-dialog-background-from-dark-transparent-overlay-to-a-solid-white-background-to-improve-text-readability",
+      "title": "Change the Create Question dialog background from dark/transparent overlay to a solid white background to improve text readability",
       "reqIds": [
-        "REQ-7"
+        "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-add-admin-ui-support-for-creating-and-editing-gallery-questions-including-optional-images-within-the-existing-adminpanel-questionmanagementpanel-flow-and-connect-it-to-the-new-backend-create-update-apis",
-      "title": "Add Admin UI support for creating and editing gallery questions (including optional images) within the existing AdminPanel QuestionManagementPanel flow, and connect it to the new backend create/update APIs.",
+      "id": "feature-remove-the-asterisk-from-the-question-text-field-label-and-make-the-field-truly-optional-to-support-image-only-questions",
+      "title": "Remove the asterisk (*) from the Question Text field label and make the field truly optional to support image-only questions",
       "reqIds": [
-        "REQ-8"
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-all-four-option-input-fields-are-fully-visible-and-properly-spaced-within-the-create-question-dialog-layout",
+      "title": "Ensure all four option input fields are fully visible and properly spaced within the Create Question dialog layout",
+      "reqIds": [
+        "REQ-3"
       ],
       "version": 1
     }
@@ -30,48 +50,66 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Day 3: Implement Question Gallery backend APIs (add/get/delete/update) and connect AdminPanel UI to make upload/display/delete/edit functional",
+      "summary": "Fix Create Question dialog transparency and make question text optional",
       "reqIds": [],
-      "status": "pending"
+      "status": "in_progress"
     },
     {
       "id": "AR-2",
-      "summary": "Day 3: Add persistent stable storage so gallery questions persist across upgrades/redeploys",
+      "summary": "Add User Management tab to Admin panel with list, block/unblock functionality",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-3",
-      "summary": "Day 3: Support storing/handling image uploads for gallery questions (if used by UI)",
+      "summary": "Restore Test Creation feature with form, question selection, and scheduling",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-4",
-      "summary": "Implement backend (Motoko) Question Gallery APIs to support full CRUD for questions, including: create a new question, list questions filtered by subject, update an existing question, and delete a question. Enforce admin-only access for create/update/delete and allow authenticated users to read/list questions.",
-      "reqIds": [
-        "REQ-4"
-      ],
+      "summary": "Add Test Management tab with publish/unpublish and delete functionality",
+      "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-5",
-      "summary": "Add persistent stable storage for Question Gallery data so questions (and associated counters/indices needed for listing and CRUD) survive canister upgrades/redeploys.",
-      "reqIds": [
-        "REQ-5"
-      ],
+      "summary": "Restore Dashboard test list with Take Test buttons",
+      "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-6",
-      "summary": "Support storing and returning question images for gallery questions using the existing blob-storage mixin (Storage.ExternalBlob fields already present in Question/Option types). Provide backend methods needed by the frontend to attach uploaded images to a question (question-level image and option-level image).",
-      "reqIds": [
-        "REQ-6"
-      ],
+      "summary": "Restore Take Test flow with timed interface and auto-submit",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Restore Leaderboard to Dashboard with top scorers and rank display",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Restore Result Analytics page with score breakdown and explanations",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Add Admin Analytics Dashboard with user counts and completion rates",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-10",
+      "summary": "Restore PDF export for test results with branding",
+      "reqIds": [],
       "status": "pending"
     }
   ],
-  "projectName": "Concept Delta",
+  "projectName": "Delta Physics Mock Test Platform",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

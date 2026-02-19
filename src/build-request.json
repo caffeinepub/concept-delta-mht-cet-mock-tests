@@ -1,131 +1,79 @@
 {
   "kind": "build_request",
-  "title": "Day 3: Implement Question Gallery CRUD + Persistence + Admin UI Wiring",
+  "title": "Fix Create Question dialog transparency and make question text optional",
   "projectName": "Concept Delta",
-  "priority": "normal",
+  "priority": "high",
   "requirements": [
     {
-      "id": "REQ-4",
-      "text": "Implement backend (Motoko) Question Gallery APIs to support full CRUD for questions, including: create a new question, list questions filtered by subject, update an existing question, and delete a question. Enforce admin-only access for create/update/delete and allow authenticated users to read/list questions.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "start day 3",
-          "yes"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Non-admin callers cannot create, update, or delete questions (backend traps with a clear unauthorized message).",
-        "Admin callers can create a question and receive a unique question id.",
-        "Listing questions by subject returns the created questions for that subject.",
-        "Admin callers can update a question and subsequent reads reflect the updated fields.",
-        "Admin callers can delete a question and it is removed from question listings.",
-        "Deleting a question continues to remove that questionId from any TestConfig.questions arrays (preserve current behavior in deleteQuestion)."
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "text": "Add persistent stable storage for Question Gallery data so questions (and associated counters/indices needed for listing and CRUD) survive canister upgrades/redeploys.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "Add persistent stable storage so questions persist forever."
-        ]
-      },
-      "acceptanceCriteria": [
-        "After an upgrade, previously created gallery questions are still returned by the list-by-subject API.",
-        "The next-question-id counter does not reset after upgrade; new questions get new ids without collisions.",
-        "No runtime traps occur during preupgrade/postupgrade due to serialization/deserialization issues."
-      ]
-    },
-    {
-      "id": "REQ-6",
-      "text": "Support storing and returning question images for gallery questions using the existing blob-storage mixin (Storage.ExternalBlob fields already present in Question/Option types). Provide backend methods needed by the frontend to attach uploaded images to a question (question-level image and option-level image).",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "store image uploads"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Backend exposes a workflow/API that allows the frontend to upload an image blob and receive a Storage.ExternalBlob reference.",
-        "Creating/updating a question can include an optional question image and optional option images.",
-        "When listing questions by subject, returned questions include the ExternalBlob references for any stored images."
-      ]
-    },
-    {
-      "id": "REQ-7",
-      "text": "Wire the AdminPanel Question Gallery UI to the real backend Question Gallery APIs by updating React Query hooks and components so that selecting a subject loads questions from the backend instead of returning an empty stub.",
+      "id": "REQ-1",
+      "text": "Change the Create Question dialog background from dark/transparent overlay to a solid white background to improve text readability",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-last"
         ],
         "quotes": [
-          "Restore Question Gallery functions"
+          "Dark/transparent background on Create Question dialog"
         ]
       },
       "acceptanceCriteria": [
-        "In frontend/src/hooks/useQueries.ts, useGetQuestionsBySubject(subject) calls the backend list-by-subject query and returns the fetched list.",
-        "In frontend/src/components/QuestionManagementPanel.tsx, changing the subject triggers a refetch and updates the gallery list.",
-        "When backend returns 0 questions, the existing empty-state UI remains (\"No questions available for this subject\").",
-        "When backend returns questions, frontend/src/components/QuestionGallery.tsx renders them and search/filter works as before."
+        "Dialog background is solid white with no transparency",
+        "All text labels and input fields are clearly visible against the white background",
+        "Dialog maintains proper contrast ratios for accessibility"
       ]
     },
     {
-      "id": "REQ-8",
-      "text": "Add Admin UI support for creating and editing gallery questions (including optional images) within the existing AdminPanel QuestionManagementPanel flow, and connect it to the new backend create/update APIs.",
+      "id": "REQ-2",
+      "text": "Remove the asterisk (*) from the Question Text field label and make the field truly optional to support image-only questions",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-last"
         ],
         "quotes": [
-          "Upload question to gallery",
-          "Edit question support"
+          "Question Text field shows asterisk (*) making it mandatory",
+          "most questions are image-only"
         ]
       },
       "acceptanceCriteria": [
-        "Admin can open a form in the Question Management area to create a new question with subject, chapter, difficulty, questionText, options, correctAnswer, explanation (optional), and classLevel.",
-        "Submitting the create form calls the backend create API and the new question appears in the gallery for the selected subject without a full page reload (react-query invalidation/refetch).",
-        "Admin can select a question and edit its fields; submitting calls the backend update API and the gallery reflects the updated data.",
-        "If image upload is used in the form, the UI uploads the blob, receives an ExternalBlob reference, and includes it in create/update payloads.",
-        "Non-admin users do not see create/edit controls."
+        "Question Text field label does not display an asterisk",
+        "Form validation allows submission with empty Question Text when Question Image is provided",
+        "Users can successfully create questions with only images and no text"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Ensure all four option input fields are fully visible and properly spaced within the Create Question dialog layout",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-last"
+        ],
+        "quotes": [
+          "Options input fields may not be fully visible in dialog"
+        ]
+      },
+      "acceptanceCriteria": [
+        "All four option input fields (Option A, B, C, D) are visible without scrolling",
+        "Option fields have adequate spacing between them",
+        "Dialog height accommodates all fields comfortably"
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor with logic in backend/main.mo; add backend/migration.mo only if required by state upgrade needs.",
-    "Do not edit frontend immutable paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, and any sources under frontend/src/components/ui (compose them instead).",
-    "Use English for any user-facing text."
+    "Do not modify backend/main.mo or any backend logic",
+    "Preserve the existing QuestionEditorDialog component structure",
+    "Maintain compatibility with the current question data model",
+    "Do not change the Subject, Chapter, Difficulty, or Class Level fields"
   ],
   "nonGoals": [
-    "Implementing real-time updates (WebSockets) for the gallery.",
-    "Adding third-party authentication beyond Internet Identity.",
-    "Building a separate external database; persistence must use canister stable storage.",
-    "Implementing PDF export features (existing PDF export components are placeholders)."
+    "Adding new fields to the question form",
+    "Changing the question submission API",
+    "Modifying the Question Gallery display logic",
+    "Implementing test creation or user management features"
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

@@ -1,70 +1,53 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Concept Delta — Admin Question Gallery: Backend Wiring + Create/Edit UI",
+  "title": "Fix Create Question dialog transparency and make question text optional",
   "requirements": [
     {
-      "id": "REQ-7",
-      "summary": "Wire Question Gallery subject selection to fetch and display real backend questions via React Query.",
+      "id": "REQ-1",
+      "summary": "Change the Create Question dialog background from dark/transparent overlay to a solid white background to improve text readability",
       "acceptanceCriteria": [
-        "In frontend/src/hooks/useQueries.ts, useGetQuestionsBySubject(subject) calls the backend list-by-subject query and returns the fetched list.",
-        "In frontend/src/components/QuestionManagementPanel.tsx, changing the subject triggers a refetch and updates the gallery list.",
-        "When backend returns 0 questions, the existing empty-state UI remains (\"No questions available for this subject\").",
-        "When backend returns questions, frontend/src/components/QuestionGallery.tsx renders them and search/filter works as before."
+        "Dialog background is solid white with no transparency",
+        "All text labels and input fields are clearly visible against the white background",
+        "Dialog maintains proper contrast ratios for accessibility"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/src/components/QuestionEditorDialog.tsx",
           "operation": "modify",
-          "description": "Implement Question Gallery fetching by updating useGetQuestionsBySubject(subject) to call the backend capability for list-by-subject and convert backend Question/Option shapes (including optional ExternalBlob image references) into the existing local Question type. Ensure query keys remain subject-scoped and errors are surfaced consistently."
-        },
-        {
-          "path": "frontend/src/types/local.ts",
-          "operation": "modify",
-          "description": "Align local Question/Option image fields with backend optionality (allow undefined/null) so fetched questions with/without ExternalBlob images can be represented without type mismatches."
-        },
-        {
-          "path": "frontend/src/components/QuestionManagementPanel.tsx",
-          "operation": "modify",
-          "description": "Ensure subject changes actively trigger refresh behavior (e.g., by invoking refetch on selectedSubject change) and keep current empty/error/loading states unchanged while using the real fetched questions list."
+          "description": "Update the Dialog component styling to use a solid white background instead of the default dark/transparent overlay. Modify the DialogContent className to include 'bg-white' and remove any transparency-related classes. Ensure all text elements (labels, placeholders, help text) have sufficient contrast against the white background by using appropriate text color classes (e.g., 'text-gray-900', 'text-gray-700')."
         }
       ]
     },
     {
-      "id": "REQ-8",
-      "summary": "Add admin-only create/edit question UI (including optional images) within the existing QuestionManagementPanel flow and connect to backend create/update APIs with React Query invalidation.",
+      "id": "REQ-2",
+      "summary": "Remove the asterisk (*) from the Question Text field label and make the field truly optional to support image-only questions",
       "acceptanceCriteria": [
-        "Admin can open a form in the Question Management area to create a new question with subject, chapter, difficulty, questionText, options, correctAnswer, explanation (optional), and classLevel.",
-        "Submitting the create form calls the backend create API and the new question appears in the gallery for the selected subject without a full page reload (react-query invalidation/refetch).",
-        "Admin can select a question and edit its fields; submitting calls the backend update API and the gallery reflects the updated data.",
-        "If image upload is used in the form, the UI uploads the blob, receives an ExternalBlob reference, and includes it in create/update payloads.",
-        "Non-admin users do not see create/edit controls."
+        "Question Text field label does not display an asterisk",
+        "Form validation allows submission with empty Question Text when Question Image is provided",
+        "Users can successfully create questions with only images and no text"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/src/components/QuestionEditorDialog.tsx",
           "operation": "modify",
-          "description": "Add React Query mutations for Question Gallery create and update that call backend capabilities, and invalidate/refetch the currently selected subject’s questions on success. Include error handling that surfaces authorization failures cleanly."
-        },
-        {
-          "path": "frontend/src/utils/externalBlob.ts",
-          "operation": "create",
-          "description": "Create a small helper to convert a browser File into a blob-storage ExternalBlob instance (including optional upload progress handling). Use the blob-storage ExternalBlob API to support image upload workflows. Verify the component's usage instructions before implementing."
-        },
+          "description": "Remove the asterisk (*) from the 'Question Text' field label by updating the label text from 'Question Text *' to 'Question Text'. Update the form validation logic to make questionText optional when a question image is provided. Modify the validation schema or validation function to check: if questionText is empty, require that questionImage is not null; if both are empty, show an error indicating at least one is required. Update the onSave/handleSubmit handler to allow submission when questionText is empty but questionImage is present."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Ensure all four option input fields are fully visible and properly spaced within the Create Question dialog layout",
+      "acceptanceCriteria": [
+        "All four option input fields (Option A, B, C, D) are visible without scrolling",
+        "Option fields have adequate spacing between them",
+        "Dialog height accommodates all fields comfortably"
+      ],
+      "file_operations": [
         {
           "path": "frontend/src/components/QuestionEditorDialog.tsx",
-          "operation": "create",
-          "description": "Add an admin-only dialog component for creating/editing a gallery question, including fields for subject, chapter, difficulty, questionText, options, correctAnswer, explanation (optional), and classLevel, plus optional question image and per-option image selection. Use blob-storage ExternalBlob objects for images and render previews via ExternalBlob.getDirectURL() when available. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/QuestionManagementPanel.tsx",
           "operation": "modify",
-          "description": "Wire create/edit controls into the existing Question Management area: show Create button and Edit button (enabled when exactly one question is selected) only for admins, open QuestionEditorDialog, and connect submit handlers to the new create/update mutations. On success, close the dialog and trigger react-query invalidation/refetch so the gallery updates without a full reload."
-        },
-        {
-          "path": "frontend/src/components/QuestionGallery.tsx",
-          "operation": "modify",
-          "description": "Preserve existing search/filter and empty state behavior, but ensure selection UX supports edit flow (single selection for edit via existing selectedQuestionIds). Keep create/edit controls out of the gallery for non-admin users; rely on the admin guard in the management panel."
+          "description": "Adjust the dialog layout to ensure all four option input fields are visible without scrolling. Increase the DialogContent maxHeight or remove height constraints that may be causing truncation. Add consistent vertical spacing (e.g., 'space-y-3' or 'gap-3') between option input fields. Review the overall dialog structure and consider using 'max-h-[90vh]' with 'overflow-y-auto' on the scrollable content area (not the entire dialog) to ensure all fields fit within the viewport while maintaining accessibility on smaller screens."
         }
       ]
     }

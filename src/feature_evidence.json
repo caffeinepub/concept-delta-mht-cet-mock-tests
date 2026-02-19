@@ -2,12 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-wire-the-adminpanel-question-gallery-ui-to-the-real-backend-question-gallery-apis-by-updating-react-query-hooks-and-components-so-that-selecting-a-subject-loads-questions-from-the-backend-instead-of-returning-an-empty-stub",
-      "featureTitle": "Wire the AdminPanel Question Gallery UI to the real backend Question Gallery APIs by updating React Query hooks and components so that selecting a subject loads questions from the backend instead of returning an empty stub.",
+      "featureId": "feature-change-the-create-question-dialog-background-from-dark-transparent-overlay-to-a-solid-white-background-to-improve-text-readability",
+      "featureTitle": "Change the Create Question dialog background from dark/transparent overlay to a solid white background to improve text readability",
       "files": [
-        "frontend/src/components/QuestionManagementPanel.tsx",
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/types/local.ts"
+        "frontend/src/components/QuestionEditorDialog.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -20,18 +18,15 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-7"
+        "REQ-1"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-admin-ui-support-for-creating-and-editing-gallery-questions-including-optional-images-within-the-existing-adminpanel-questionmanagementpanel-flow-and-connect-it-to-the-new-backend-create-update-apis",
-      "featureTitle": "Add Admin UI support for creating and editing gallery questions (including optional images) within the existing AdminPanel QuestionManagementPanel flow, and connect it to the new backend create/update APIs.",
+      "featureId": "feature-remove-the-asterisk-from-the-question-text-field-label-and-make-the-field-truly-optional-to-support-image-only-questions",
+      "featureTitle": "Remove the asterisk (*) from the Question Text field label and make the field truly optional to support image-only questions",
       "files": [
-        "frontend/src/components/QuestionEditorDialog.tsx",
-        "frontend/src/components/QuestionManagementPanel.tsx",
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/utils/externalBlob.ts"
+        "frontend/src/components/QuestionEditorDialog.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -44,7 +39,28 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-8"
+        "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-ensure-all-four-option-input-fields-are-fully-visible-and-properly-spaced-within-the-create-question-dialog-layout",
+      "featureTitle": "Ensure all four option input fields are fully visible and properly spaced within the Create Question dialog layout",
+      "files": [
+        "frontend/src/components/QuestionEditorDialog.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "camera@1.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
       ],
       "confidence": "high"
     }

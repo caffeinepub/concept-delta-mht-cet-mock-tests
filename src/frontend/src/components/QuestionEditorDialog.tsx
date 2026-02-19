@@ -163,8 +163,14 @@ export default function QuestionEditorDialog({
 
   const handleSubmit = async () => {
     // Validation
-    if (!subject || !chapter || !questionText.trim()) {
-      toast.error('Please fill in all required fields');
+    if (!subject || !chapter) {
+      toast.error('Please fill in subject and chapter');
+      return;
+    }
+
+    // Question text is optional if question image is provided
+    if (!questionText.trim() && !questionImage) {
+      toast.error('Please provide either question text or question image');
       return;
     }
 
@@ -213,10 +219,12 @@ export default function QuestionEditorDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh]">
+      <DialogContent className="max-w-3xl max-h-[90vh] bg-white dark:bg-gray-900">
         <DialogHeader>
-          <DialogTitle>{mode === 'create' ? 'Create New Question' : 'Edit Question'}</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-gray-900 dark:text-gray-100">
+            {mode === 'create' ? 'Create New Question' : 'Edit Question'}
+          </DialogTitle>
+          <DialogDescription className="text-gray-700 dark:text-gray-300">
             {mode === 'create'
               ? 'Add a new question to the gallery with optional images'
               : 'Update question details and images'}
@@ -227,11 +235,11 @@ export default function QuestionEditorDialog({
           <div className="space-y-4 py-2">
             {/* Subject */}
             <div className="space-y-2">
-              <Label htmlFor="subject">
+              <Label htmlFor="subject" className="text-gray-900 dark:text-gray-100">
                 Subject <span className="text-destructive">*</span>
               </Label>
               <Select value={subject} onValueChange={setSubject}>
-                <SelectTrigger id="subject">
+                <SelectTrigger id="subject" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -246,7 +254,7 @@ export default function QuestionEditorDialog({
 
             {/* Chapter */}
             <div className="space-y-2">
-              <Label htmlFor="chapter">
+              <Label htmlFor="chapter" className="text-gray-900 dark:text-gray-100">
                 Chapter <span className="text-destructive">*</span>
               </Label>
               <Input
@@ -254,15 +262,16 @@ export default function QuestionEditorDialog({
                 value={chapter}
                 onChange={(e) => setChapter(e.target.value)}
                 placeholder="e.g., Mechanics, Thermodynamics"
+                className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               />
             </div>
 
             {/* Difficulty & Class Level */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="difficulty">Difficulty</Label>
+                <Label htmlFor="difficulty" className="text-gray-900 dark:text-gray-100">Difficulty</Label>
                 <Select value={difficulty} onValueChange={setDifficulty}>
-                  <SelectTrigger id="difficulty">
+                  <SelectTrigger id="difficulty" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -276,9 +285,9 @@ export default function QuestionEditorDialog({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="classLevel">Class Level</Label>
+                <Label htmlFor="classLevel" className="text-gray-900 dark:text-gray-100">Class Level</Label>
                 <Select value={classLevel} onValueChange={(val) => setClassLevel(val as TestType)}>
-                  <SelectTrigger id="classLevel">
+                  <SelectTrigger id="classLevel" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -294,8 +303,8 @@ export default function QuestionEditorDialog({
 
             {/* Question Text */}
             <div className="space-y-2">
-              <Label htmlFor="questionText">
-                Question Text <span className="text-destructive">*</span>
+              <Label htmlFor="questionText" className="text-gray-900 dark:text-gray-100">
+                Question Text
               </Label>
               <Textarea
                 id="questionText"
@@ -303,12 +312,16 @@ export default function QuestionEditorDialog({
                 onChange={(e) => setQuestionText(e.target.value)}
                 placeholder="Enter the question text..."
                 rows={3}
+                className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               />
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                Optional if question image is provided
+              </p>
             </div>
 
             {/* Question Image */}
             <div className="space-y-2">
-              <Label>Question Image (Optional)</Label>
+              <Label className="text-gray-900 dark:text-gray-100">Question Image (Optional)</Label>
               {questionImagePreview ? (
                 <div className="relative inline-block">
                   <img
@@ -337,7 +350,7 @@ export default function QuestionEditorDialog({
                   />
                   <Label
                     htmlFor="question-image-upload"
-                    className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 border rounded-md hover:bg-accent"
+                    className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 border rounded-md hover:bg-accent text-gray-900 dark:text-gray-100"
                   >
                     <Upload className="h-4 w-4" />
                     Upload Image
@@ -351,13 +364,13 @@ export default function QuestionEditorDialog({
 
             {/* Options */}
             <div className="space-y-3">
-              <Label>
+              <Label className="text-gray-900 dark:text-gray-100">
                 Options <span className="text-destructive">*</span> (at least 2)
               </Label>
               {options.map((option, index) => (
-                <div key={index} className="space-y-2 p-3 border rounded-md">
+                <div key={index} className="space-y-2 p-3 border rounded-md bg-gray-50 dark:bg-gray-800">
                   <div className="flex items-center gap-2">
-                    <Label className="text-sm font-medium">Option {index + 1}</Label>
+                    <Label className="text-sm font-medium text-gray-900 dark:text-gray-100">Option {index + 1}</Label>
                     <input
                       type="radio"
                       name="correctAnswer"
@@ -371,6 +384,7 @@ export default function QuestionEditorDialog({
                     value={option.text}
                     onChange={(e) => handleOptionTextChange(index, e.target.value)}
                     placeholder={`Enter option ${index + 1} text...`}
+                    className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   />
                   {option.image ? (
                     <div className="relative inline-block">
@@ -400,7 +414,7 @@ export default function QuestionEditorDialog({
                       />
                       <Label
                         htmlFor={`option-${index}-image-upload`}
-                        className="cursor-pointer inline-flex items-center gap-2 px-3 py-1 text-sm border rounded-md hover:bg-accent"
+                        className="cursor-pointer inline-flex items-center gap-2 px-3 py-1 text-sm border rounded-md hover:bg-accent text-gray-900 dark:text-gray-100"
                       >
                         <ImageIcon className="h-3 w-3" />
                         Add Image
@@ -419,13 +433,14 @@ export default function QuestionEditorDialog({
 
             {/* Explanation */}
             <div className="space-y-2">
-              <Label htmlFor="explanation">Explanation (Optional)</Label>
+              <Label htmlFor="explanation" className="text-gray-900 dark:text-gray-100">Explanation (Optional)</Label>
               <Textarea
                 id="explanation"
                 value={explanation}
                 onChange={(e) => setExplanation(e.target.value)}
                 placeholder="Provide an explanation for the correct answer..."
                 rows={3}
+                className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               />
             </div>
           </div>
